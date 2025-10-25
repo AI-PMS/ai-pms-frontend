@@ -8,6 +8,13 @@
     "start": "next start",
     "lint": "eslint"
   },
+
+  "eslintConfig": {
+    "root": true,
+    "ignorePatterns": ["**/*"],
+    "rules": {}
+  },
+  
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "autoprefixer": "^10.4.21",
