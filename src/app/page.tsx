@@ -122,7 +122,7 @@ import AIChatBot from './components/AIChatBot';
 import OfficerRegistrationModal from './components/OfficerRegistrationModal';
 import OfficerEditModal from './components/OfficerEditModal';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-pms-backend.onrender.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-pms-backend.onrender.com/api/v1';
 
 // Validation functions
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?$/;
