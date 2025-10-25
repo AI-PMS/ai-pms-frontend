@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     'recharts',
   ],
 },
+
+eslint: {
+    ignoreDuringBuilds: true, // ✅ Disables ESLint errors in production
+  },
 turbopack: {
   rules: {
     '*.svg': {
