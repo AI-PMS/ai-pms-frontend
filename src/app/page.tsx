@@ -345,15 +345,48 @@ const PrisonManagementApp = () => {
   const [genderFilter, setGenderFilter] = useState('all');
   const [shiftFilter, setShiftFilter] = useState('all');
 
-  // Check for mobile screen
+  // Enhanced mobile detection with viewport consideration
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      
+      // Add viewport meta tag dynamically for mobile devices
+      if (mobile) {
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (!viewport) {
+          const meta = document.createElement('meta');
+          meta.name = 'viewport';
+          meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+          document.head.appendChild(meta);
+        }
+      }
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    // Prevent zoom on input focus for mobile
+    const preventZoom = (e: any) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+        document.querySelector('meta[name="viewport"]')?.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+      }
+    };
+
+    const restoreZoom = (e: any) => {
+      setTimeout(() => {
+        document.querySelector('meta[name="viewport"]')?.setAttribute('content', 'width=device-width, initial-scale=1.0');
+      }, 500);
+    };
+
+    document.addEventListener('focusin', preventZoom);
+    document.addEventListener('focusout', restoreZoom);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.removeEventListener('focusin', preventZoom);
+      document.removeEventListener('focusout', restoreZoom);
+    };
   }, []);
 
   // Check authentication and system status on mount
@@ -500,7 +533,7 @@ const PrisonManagementApp = () => {
     }
   }, [isAuthenticated, user, token]);
 
-  // Validation functions for forms
+  // Enhanced validation functions for forms with mobile-friendly error handling
   const validateLoginForm = () => {
     const errors: Record<string, string> = {};
     
@@ -545,7 +578,7 @@ const PrisonManagementApp = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // Authentication Functions
+  // Enhanced Authentication Functions with mobile-friendly UX
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -752,37 +785,37 @@ const PrisonManagementApp = () => {
   };
 
   const handleCreateOfficerDuty = async (dutyData: any) => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const result = await apiCall('/officers/duty', {
-      method: 'POST',
-      body: JSON.stringify(dutyData)
-    });
+    try {
+      const result = await apiCall('/officers/duty', {
+        method: 'POST',
+        body: JSON.stringify(dutyData)
+      });
 
-    if (result.message) {
+      if (result.message) {
+        setNotifications(prev => [...prev, {
+          id: Date.now() + Math.random(),
+          type: 'success',
+          message: 'Officer duty assigned successfully!',
+          duration: 3000
+        }]);
+        
+        setShowOfficerForm(false);
+        loadOfficerDuties();
+        loadDashboardData();
+      }
+    } catch (error: any) {
       setNotifications(prev => [...prev, {
         id: Date.now() + Math.random(),
-        type: 'success',
-        message: 'Officer duty assigned successfully!',
-        duration: 3000
+        type: 'error',
+        message: error.message || 'Failed to assign officer duty',
+        duration: 5000
       }]);
-      
-      setShowOfficerForm(false);
-      loadOfficerDuties();
-      loadDashboardData();
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: any) {
-    setNotifications(prev => [...prev, {
-      id: Date.now() + Math.random(),
-      type: 'error',
-      message: error.message || 'Failed to assign officer duty',
-      duration: 5000
-    }]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleUpdateOfficerDuty = async (dutyId: string, dutyData: any) => {
     setIsLoading(true);
@@ -1276,7 +1309,7 @@ const PrisonManagementApp = () => {
     });
   };
 
-  // Notification Component
+  // Enhanced Notification Component with mobile positioning
   const NotificationSystem = () => {
     useEffect(() => {
       if (notifications.length > 0) {
@@ -1289,13 +1322,17 @@ const PrisonManagementApp = () => {
     }, [notifications]);
 
     return (
-      <div className="fixed top-4 right-4 z-50 space-y-2 max-w-xs w-full">
+      <div className={`fixed z-50 space-y-2 max-w-xs w-full ${
+        isMobile 
+          ? 'top-4 left-1/2 transform -translate-x-1/2' 
+          : 'top-4 right-4'
+      }`}>
         {notifications.map((notif) => (
           <motion.div
             key={notif.id}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
+            initial={{ opacity: 0, x: isMobile ? 0 : 100, y: isMobile ? -50 : 0 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, x: isMobile ? 0 : 100, y: isMobile ? -50 : 0 }}
             className={`p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
               notif.type === 'success' ? 'bg-green-500 text-white' :
               notif.type === 'error' ? 'bg-red-500 text-white' :
@@ -1318,7 +1355,7 @@ const PrisonManagementApp = () => {
     );
   };
 
-  // Login/Register Form - MODERN DESIGN WITH SPLIT LAYOUT
+  // Enhanced Login/Register Form with mobile-optimized inputs
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 relative overflow-hidden">
@@ -1330,7 +1367,10 @@ const PrisonManagementApp = () => {
         <div className="absolute bottom-10 right-10 w-32 h-32 bg-red-400/10 rounded-full blur-xl animate-pulse"></div>
         <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-green-400/10 rounded-full blur-lg animate-ping"></div>
         
-        <ToastContainer position="top-right" autoClose={5000} />
+        <ToastContainer 
+          position={isMobile ? "top-center" : "top-right"} 
+          autoClose={5000} 
+        />
         <NotificationSystem />
         
         <motion.div 
@@ -1341,23 +1381,23 @@ const PrisonManagementApp = () => {
         >
           <div className="flex flex-col lg:flex-row min-h-[600px]">
             {/* Left Side - Form */}
-            <div className="flex-1 p-8 lg:p-12 flex flex-col justify-center">
+            <div className="flex-1 p-4 sm:p-6 lg:p-8 xl:p-12 flex flex-col justify-center">
               <div className="w-full max-w-md mx-auto">
                 {/* Header */}
-                <div className="text-center mb-8">
+                <div className="text-center mb-6 sm:mb-8">
                   <motion.div 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                    className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
+                    className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-yellow-400 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg"
                   >
-                    <Shield className="w-8 h-8 text-white" />
+                    <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                   </motion.div>
                   <motion.h1 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="text-2xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-transparent"
+                    className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-transparent"
                   >
                     Prison Management System
                   </motion.h1>
@@ -1365,7 +1405,7 @@ const PrisonManagementApp = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-gray-600 text-sm"
+                    className="text-gray-600 text-xs sm:text-sm"
                   >
                     Secure Prison Management for Ghana Security Agencies
                   </motion.p>
@@ -1379,19 +1419,21 @@ const PrisonManagementApp = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">Register Your Institution</h2>
-                      <form onSubmit={handleRegister} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                      <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6 text-center">Register Your Institution</h2>
+                      <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           <div>
                             <input
                               type="text"
                               placeholder="First Name"
                               value={registerForm.first_name}
                               onChange={(e) => setRegisterForm(prev => ({ ...prev, first_name: e.target.value }))}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                              className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                                 formErrors.first_name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                               }`}
                               required
+                              inputMode="text"
+                              autoComplete="given-name"
                             />
                             {formErrors.first_name && (
                               <p className="text-red-500 text-xs mt-1">{formErrors.first_name}</p>
@@ -1403,10 +1445,12 @@ const PrisonManagementApp = () => {
                               placeholder="Last Name"
                               value={registerForm.last_name}
                               onChange={(e) => setRegisterForm(prev => ({ ...prev, last_name: e.target.value }))}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                              className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                                 formErrors.last_name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                               }`}
                               required
+                              inputMode="text"
+                              autoComplete="family-name"
                             />
                             {formErrors.last_name && (
                               <p className="text-red-500 text-xs mt-1">{formErrors.last_name}</p>
@@ -1420,10 +1464,12 @@ const PrisonManagementApp = () => {
                             placeholder="Official Email"
                             value={registerForm.email}
                             onChange={(e) => setRegisterForm(prev => ({ ...prev, email: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            inputMode="email"
+                            autoComplete="email"
                           />
                           {formErrors.email && (
                             <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
@@ -1432,14 +1478,16 @@ const PrisonManagementApp = () => {
                         
                         <div>
                           <input
-                            type="text"
+                            type="tel"
                             placeholder="Phone Number"
                             value={registerForm.phone}
                             onChange={(e) => setRegisterForm(prev => ({ ...prev, phone: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            inputMode="tel"
+                            autoComplete="tel"
                           />
                           {formErrors.phone && (
                             <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>
@@ -1452,10 +1500,12 @@ const PrisonManagementApp = () => {
                             placeholder="Institution Name"
                             value={registerForm.institution_name}
                             onChange={(e) => setRegisterForm(prev => ({ ...prev, institution_name: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.institution_name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            inputMode="text"
+                            autoComplete="organization"
                           />
                           {formErrors.institution_name && (
                             <p className="text-red-500 text-xs mt-1">{formErrors.institution_name}</p>
@@ -1468,10 +1518,12 @@ const PrisonManagementApp = () => {
                             placeholder="Institution Code"
                             value={registerForm.institution_code}
                             onChange={(e) => setRegisterForm(prev => ({ ...prev, institution_code: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.institution_code ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            inputMode="text"
+                            autoComplete="off"
                           />
                           {formErrors.institution_code && (
                             <p className="text-red-500 text-xs mt-1">{formErrors.institution_code}</p>
@@ -1484,10 +1536,11 @@ const PrisonManagementApp = () => {
                             placeholder="Password"
                             value={registerForm.password}
                             onChange={(e) => setRegisterForm(prev => ({ ...prev, password: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            autoComplete="new-password"
                           />
                           <button
                             type="button"
@@ -1507,10 +1560,11 @@ const PrisonManagementApp = () => {
                             placeholder="Confirm Password"
                             value={registerForm.confirmPassword}
                             onChange={(e) => setRegisterForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            autoComplete="new-password"
                           />
                           <button
                             type="button"
@@ -1529,7 +1583,7 @@ const PrisonManagementApp = () => {
                           disabled={isLoading}
                           whileHover={{ scale: isLoading ? 1 : 1.02 }}
                           whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                          className="w-full bg-gradient-to-r from-blue-600 to-red-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-red-700 transition-all duration-300 font-semibold disabled:opacity-50 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                          className="w-full bg-gradient-to-r from-blue-600 to-red-600 text-white py-2 sm:py-3 px-6 rounded-xl hover:from-blue-700 hover:to-red-700 transition-all duration-300 font-semibold disabled:opacity-50 shadow-lg hover:shadow-xl disabled:cursor-not-allowed text-sm sm:text-base"
                         >
                           {isLoading ? (
                             <div className="flex items-center justify-center space-x-2">
@@ -1542,7 +1596,7 @@ const PrisonManagementApp = () => {
                         </motion.button>
                       </form>
                       {systemStatus && !systemStatus.first_user_registration && (
-                        <p className="text-center mt-4 text-sm text-gray-600">
+                        <p className="text-center mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
                           Already have an account?{' '}
                           <button
                             onClick={() => setShowRegister(false)}
@@ -1559,18 +1613,20 @@ const PrisonManagementApp = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">Login to Your Account</h2>
-                      <form onSubmit={handleLogin} className="space-y-4">
+                      <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6 text-center">Login to Your Account</h2>
+                      <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
                         <div>
                           <input
                             type="email"
                             placeholder="Official Email"
                             value={loginForm.email}
                             onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            inputMode="email"
+                            autoComplete="email"
                           />
                           {formErrors.email && (
                             <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
@@ -1583,10 +1639,11 @@ const PrisonManagementApp = () => {
                             placeholder="Password"
                             value={loginForm.password}
                             onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                            className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base ${
                               formErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             required
+                            autoComplete="current-password"
                           />
                           <button
                             type="button"
@@ -1605,7 +1662,7 @@ const PrisonManagementApp = () => {
                           disabled={isLoading}
                           whileHover={{ scale: isLoading ? 1 : 1.02 }}
                           whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                          className="w-full bg-gradient-to-r from-blue-600 to-red-600 text-white py-3 px-6 rounded-xl hover:from-blue-700 hover:to-red-700 transition-all duration-300 font-semibold disabled:opacity-50 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                          className="w-full bg-gradient-to-r from-blue-600 to-red-600 text-white py-2 sm:py-3 px-6 rounded-xl hover:from-blue-700 hover:to-red-700 transition-all duration-300 font-semibold disabled:opacity-50 shadow-lg hover:shadow-xl disabled:cursor-not-allowed text-sm sm:text-base"
                         >
                           {isLoading ? (
                             <div className="flex items-center justify-center space-x-2">
@@ -1618,7 +1675,7 @@ const PrisonManagementApp = () => {
                         </motion.button>
                       </form>
                       {systemStatus?.first_user_registration && (
-                        <p className="text-center mt-4 text-sm text-gray-600">
+                        <p className="text-center mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
                           Need to register your institution?{' '}
                           <button
                             onClick={() => setShowRegister(true)}
@@ -1633,64 +1690,66 @@ const PrisonManagementApp = () => {
                 </div>
 
                 {/* Security Badge */}
-                <div className="mt-6 p-3 bg-gradient-to-r from-blue-50 to-red-50 rounded-xl border border-blue-200">
+                <div className="mt-4 sm:mt-6 p-2 sm:p-3 bg-gradient-to-r from-blue-50 to-red-50 rounded-xl border border-blue-200">
                   <div className="flex items-center justify-center space-x-2 text-xs text-gray-600">
-                    <ShieldCheck className="w-4 h-4 text-green-500" />
+                    <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
                     <span>Enterprise-grade Security & Encryption</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right Side - Image */}
-            <div className="flex-1 bg-gradient-to-br from-blue-900 to-purple-900 relative overflow-hidden hidden lg:block">
-              <div className="absolute inset-0 bg-black/40 z-10"></div>
-              <div 
-                className="absolute inset-0 bg-cover bg-center z-0"
-                style={{
-                  backgroundImage: 'url("https://images.unsplash.com/photo-1581093458791-9d66defd7f7c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")'
-                }}
-              ></div>
-              <div className="relative z-20 h-full flex items-center justify-center p-12">
-                <div className="text-center text-white">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <h2 className="text-3xl font-bold mb-4">Secure Prison Management</h2>
-                    <p className="text-lg text-blue-100 mb-6">
-                      Advanced security system for Ghana's correctional facilities
-                    </p>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <ShieldCheck className="w-4 h-4 text-green-400" />
-                        <span>Real-time Monitoring</span>
+            {/* Right Side - Image (Hidden on mobile) */}
+            {!isMobile && (
+              <div className="flex-1 bg-gradient-to-br from-blue-900 to-purple-900 relative overflow-hidden hidden lg:block">
+                <div className="absolute inset-0 bg-black/40 z-10"></div>
+                <div 
+                  className="absolute inset-0 bg-cover bg-center z-0"
+                  style={{
+                    backgroundImage: 'url("https://images.unsplash.com/photo-1581093458791-9d66defd7f7c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")'
+                  }}
+                ></div>
+                <div className="relative z-20 h-full flex items-center justify-center p-8 xl:p-12">
+                  <div className="text-center text-white">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <h2 className="text-2xl xl:text-3xl font-bold mb-4">Secure Prison Management</h2>
+                      <p className="text-base xl:text-lg text-blue-100 mb-6">
+                        Advanced security system for Ghana's correctional facilities
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <ShieldCheck className="w-4 h-4 text-green-400" />
+                          <span>Real-time Monitoring</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Users className="w-4 h-4 text-green-400" />
+                          <span>Prisoner Management</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <UserPlus className="w-4 h-4 text-green-400" />
+                          <span>Visitor Control</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <BarChart3 className="w-4 h-4 text-green-400" />
+                          <span>Analytics & Reports</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Users className="w-4 h-4 text-green-400" />
-                        <span>Prisoner Management</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <UserPlus className="w-4 h-4 text-green-400" />
-                        <span>Visitor Control</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <BarChart3 className="w-4 h-4 text-green-400" />
-                        <span>Analytics & Reports</span>
-                      </div>
-                    </div>
-                  </motion.div>
+                    </motion.div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </div>
     );
   }
 
-  // Sidebar Component - UPDATED WITH DEEP BROWN GHANA PRISON SERVICE COLORS
+  // Enhanced Sidebar Component with mobile optimizations
   const Sidebar = () => (
     <aside className={`${isMobile ? 'fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out' : 'relative'} ${
       isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'
@@ -1703,14 +1762,14 @@ const PrisonManagementApp = () => {
       )}
       
       <div className="h-full flex flex-col z-50 relative">
-        <div className="p-6 border-b border-[#5D4C3A]">
+        <div className="p-4 sm:p-6 border-b border-[#5D4C3A]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-red-600 rounded-xl flex items-center justify-center shadow-md">
-                <Shield className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-400 to-red-600 rounded-xl flex items-center justify-center shadow-md">
+                <Shield className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">PrisonMS</h1>
+                <h1 className="text-base sm:text-lg font-bold text-white">PrisonMS</h1>
                 <p className="text-[#D4B996] text-xs">Ghana Prison Service</p>
               </div>
             </div>
@@ -1725,10 +1784,10 @@ const PrisonManagementApp = () => {
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-3 sm:p-4 space-y-1">
           <button
             onClick={() => {setCurrentView('dashboard'); isMobile && setSidebarOpen(false);}}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+            className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-200 text-sm ${
               currentView === 'dashboard' 
                 ? 'bg-[#5D4C3A] text-white font-medium border-r-4 border-yellow-400 shadow-sm' 
                 : 'text-[#D4B996] hover:bg-[#5D4C3A] hover:text-white'
@@ -1740,7 +1799,7 @@ const PrisonManagementApp = () => {
 
           <button
             onClick={() => {setCurrentView('prisoners'); isMobile && setSidebarOpen(false);}}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+            className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-200 text-sm ${
               currentView === 'prisoners' 
                 ? 'bg-[#5D4C3A] text-white font-medium border-r-4 border-yellow-400 shadow-sm' 
                 : 'text-[#D4B996] hover:bg-[#5D4C3A] hover:text-white'
@@ -1752,7 +1811,7 @@ const PrisonManagementApp = () => {
 
           <button
             onClick={() => {setCurrentView('visitors'); isMobile && setSidebarOpen(false);}}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+            className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-200 text-sm ${
               currentView === 'visitors' 
                 ? 'bg-[#5D4C3A] text-white font-medium border-r-4 border-yellow-400 shadow-sm' 
                 : 'text-[#D4B996] hover:bg-[#5D4C3A] hover:text-white'
@@ -1764,7 +1823,7 @@ const PrisonManagementApp = () => {
 
           <button
             onClick={() => {setCurrentView('cells'); isMobile && setSidebarOpen(false);}}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+            className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-200 text-sm ${
               currentView === 'cells' 
                 ? 'bg-[#5D4C3A] text-white font-medium border-r-4 border-yellow-400 shadow-sm' 
                 : 'text-[#D4B996] hover:bg-[#5D4C3A] hover:text-white'
@@ -1777,7 +1836,7 @@ const PrisonManagementApp = () => {
           {/* NEW OFFICERS DUTY SIDEBAR ITEM */}
           <button
             onClick={() => {setCurrentView('officers'); isMobile && setSidebarOpen(false);}}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+            className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-200 text-sm ${
               currentView === 'officers' 
                 ? 'bg-[#5D4C3A] text-white font-medium border-r-4 border-yellow-400 shadow-sm' 
                 : 'text-[#D4B996] hover:bg-[#5D4C3A] hover:text-white'
@@ -1789,7 +1848,7 @@ const PrisonManagementApp = () => {
 
           <button
             onClick={() => {setCurrentView('reports'); isMobile && setSidebarOpen(false);}}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm ${
+            className={`w-full flex items-center space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-200 text-sm ${
               currentView === 'reports' 
                 ? 'bg-[#5D4C3A] text-white font-medium border-r-4 border-yellow-400 shadow-sm' 
                 : 'text-[#D4B996] hover:bg-[#5D4C3A] hover:text-white'
@@ -1801,56 +1860,56 @@ const PrisonManagementApp = () => {
         </nav>
 
         {/* Quick Actions */}
-        <div className="p-4 border-t border-[#5D4C3A]">
-          <h3 className="text-sm font-medium text-[#D4B996] mb-3">Quick Actions</h3>
-          <div className="space-y-2">
+        <div className="p-3 sm:p-4 border-t border-[#5D4C3A]">
+          <h3 className="text-sm font-medium text-[#D4B996] mb-2 sm:mb-3">Quick Actions</h3>
+          <div className="space-y-1 sm:space-y-2">
             <button
               onClick={() => setShowPrisonerForm(true)}
-              className="w-full text-left px-3 py-2 text-xs text-yellow-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
+              className="w-full text-left px-2 sm:px-3 py-1 sm:py-2 text-xs text-yellow-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
             >
-              <PlusCircle size={14} className="text-yellow-400" />
+              <PlusCircle size={12} className="text-yellow-400" />
               <span>New Prisoner</span>
             </button>
 
             <button
               onClick={() => setShowVisitorForm(true)}
-              className="w-full text-left px-3 py-2 text-xs text-green-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
+              className="w-full text-left px-2 sm:px-3 py-1 sm:py-2 text-xs text-green-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
             >
-              <UserPlus size={14} className="text-green-400" />
+              <UserPlus size={12} className="text-green-400" />
               <span>Add Visitor</span>
             </button>
 
             <button
               onClick={() => setShowCellForm(true)}
-              className="w-full text-left px-3 py-2 text-xs text-purple-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
+              className="w-full text-left px-2 sm:px-3 py-1 sm:py-2 text-xs text-purple-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
             >
-              <Building2 size={14} className="text-purple-400" />
+              <Building2 size={12} className="text-purple-400" />
               <span>Add Cell</span>
             </button>
 
             {/* NEW OFFICER DUTY QUICK ACTION */}
             <button
               onClick={() => setShowOfficerForm(true)}
-              className="w-full text-left px-3 py-2 text-xs text-orange-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
+              className="w-full text-left px-2 sm:px-3 py-1 sm:py-2 text-xs text-orange-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
             >
-              <Clipboard size={14} className="text-orange-400" />
+              <Clipboard size={12} className="text-orange-400" />
               <span>Assign Duty</span>
             </button>
 
             <button
               onClick={() => setShowAIChat(true)}
-              className="w-full text-left px-3 py-2 text-xs text-pink-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
+              className="w-full text-left px-2 sm:px-3 py-1 sm:py-2 text-xs text-pink-400 hover:bg-[#5D4C3A] rounded-lg transition-colors flex items-center space-x-2"
             >
-              <MessageCircle size={14} className="text-pink-400" />
+              <MessageCircle size={12} className="text-pink-400" />
               <span>AI Assistant</span>
             </button>
           </div>
         </div>
         
         {/* User Profile Section */}
-        <div className="p-4 border-t border-[#5D4C3A]">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-red-600 rounded-full flex items-center justify-center shadow-sm">
+        <div className="p-3 sm:p-4 border-t border-[#5D4C3A]">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-yellow-400 to-red-600 rounded-full flex items-center justify-center shadow-sm">
               <span className="text-white font-medium text-xs">
                 {user?.first_name?.[0]}{user?.last_name?.[0]}
               </span>
@@ -1868,7 +1927,7 @@ const PrisonManagementApp = () => {
               className="text-[#D4B996] hover:text-white p-1 rounded-lg transition-colors"
               title="Logout"
             >
-              <LogOut size={14} />
+              <LogOut size={12} />
             </button>
           </div>
         </div>
@@ -1876,13 +1935,13 @@ const PrisonManagementApp = () => {
     </aside>
   );
 
-  // Dashboard Analytics Cards with Framer Motion
+  // Enhanced Dashboard Analytics Cards with responsive design
   const AnalyticsCard = ({ title, value, icon: Icon, color, change }: any) => (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{value}</p>
+          <p className="text-xs sm:text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2">{value}</p>
           {change && (
             <p className={`text-xs mt-1 flex items-center ${
               change > 0 ? 'text-green-600' : 'text-red-600'
@@ -1892,25 +1951,25 @@ const PrisonManagementApp = () => {
             </p>
           )}
         </div>
-        <div className={`w-12 h-12 ${color} rounded-full flex items-center justify-center`}>
-          <Icon className="w-6 h-6 text-white" />
+        <div className={`w-8 h-8 sm:w-12 sm:h-12 ${color} rounded-full flex items-center justify-center`}>
+          <Icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
         </div>
       </div>
     </div>
   );
 
-  // Main Dashboard Component
+  // Enhanced Main Dashboard Component with mobile optimizations
   const renderDashboard = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
-        <div className="text-sm text-gray-500">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard Overview</h2>
+        <div className="text-xs sm:text-sm text-gray-500">
           Last updated: {new Date().toLocaleTimeString()}
         </div>
       </div>
 
       {/* Analytics Cards with Framer Motion */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <AnalyticsCard
           title="Total Prisoners"
           value={dashboardSummary?.total_prisoners || 0}
@@ -1943,12 +2002,12 @@ const PrisonManagementApp = () => {
 
       {/* Recent Prisoners Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-3 sm:p-4 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <h3 className="text-lg font-semibold text-gray-900">Recent Prisoners</h3>
             <button
               onClick={() => setShowPrisonerForm(true)}
-              className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-sm"
+              className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <PlusCircle size={14} />
               <span>New Prisoner</span>
@@ -1960,23 +2019,23 @@ const PrisonManagementApp = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prisoner ID</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crime</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cell</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prisoner ID</th>
+                <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crime</th>
+                <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cell</th>
+                <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {getFilteredPrisoners().slice(0, 10).map((prisoner, index) => (
                 <tr key={generateUniqueKey(prisoner, 'prisoner', index)} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
                     <div className="text-xs font-medium text-gray-900">
                       {prisoner.prisoner_id}
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
                         {prisoner.first_name} {prisoner.last_name}
@@ -1984,10 +2043,10 @@ const PrisonManagementApp = () => {
                       <div className="text-xs text-gray-500">{prisoner.gender}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{prisoner.crime}</div>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                    <div className="text-xs sm:text-sm text-gray-900">{prisoner.crime}</div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       prisoner.status === 'convicted' ? 'bg-red-100 text-red-800' :
                       prisoner.status === 'remand' ? 'bg-yellow-100 text-yellow-800' :
@@ -1997,11 +2056,11 @@ const PrisonManagementApp = () => {
                       {prisoner.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className="text-sm text-gray-900">{prisoner.cell_id}</span>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                    <span className="text-xs sm:text-sm text-gray-900">{prisoner.cell_id}</span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-xs sm:text-sm font-medium">
+                    <div className="flex items-center space-x-1 sm:space-x-2">
                       <button
                         onClick={() => {
                           setSelectedPrisoner(prisoner);
@@ -2028,13 +2087,13 @@ const PrisonManagementApp = () => {
         </div>
 
         {getFilteredPrisoners().length === 0 && (
-          <div className="p-8 text-center">
-            <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No prisoners found</h3>
-            <p className="text-gray-500 mb-4">Get started by registering your first prisoner.</p>
+          <div className="p-6 sm:p-8 text-center">
+            <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No prisoners found</h3>
+            <p className="text-gray-500 mb-3 sm:mb-4 text-sm">Get started by registering your first prisoner.</p>
             <button
               onClick={() => setShowPrisonerForm(true)}
-              className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-sm"
+              className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-xs sm:text-sm"
             >
               Register Prisoner
             </button>
@@ -2044,27 +2103,27 @@ const PrisonManagementApp = () => {
     </div>
   );
 
-  // Prisoners Management View
+  // Enhanced Prisoners Management View with mobile optimizations
   const renderPrisonersView = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header and Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <div className="relative">
+      <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 border border-gray-200">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Search prisoners..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm w-full"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm w-full sm:w-auto"
             >
               <option value="all">All Status</option>
               <option value="remand">Remand</option>
@@ -2075,31 +2134,31 @@ const PrisonManagementApp = () => {
             <select
               value={genderFilter}
               onChange={(e) => setGenderFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm w-full sm:w-auto"
             >
               <option value="all">All Genders</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
             <button
               onClick={() => generatePrisonersReport('excel')}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 text-sm"
+              className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <DownloadCloud size={14} />
-              <span>Excel</span>
+              <span className="hidden sm:inline">Excel</span>
             </button>
             <button
               onClick={() => generatePrisonersReport('pdf')}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 text-sm"
+              className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <FileText size={14} />
-              <span>PDF</span>
+              <span className="hidden sm:inline">PDF</span>
             </button>
             <button
               onClick={() => setShowPrisonerForm(true)}
-              className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-sm"
+              className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <PlusCircle size={14} />
               <span>New Prisoner</span>
@@ -2109,7 +2168,7 @@ const PrisonManagementApp = () => {
       </div>
 
       {/* Prisoners Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {getFilteredPrisoners().map((prisoner, index) => (
           <motion.div
             key={generateUniqueKey(prisoner, 'prisoner-card', index)}
@@ -2117,13 +2176,13 @@ const PrisonManagementApp = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300"
           >
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-3">
+            <div className="p-3 sm:p-4">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                     {prisoner.first_name} {prisoner.last_name}
                   </h3>
-                  <p className="text-sm text-gray-600">ID: {prisoner.prisoner_id}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">ID: {prisoner.prisoner_id}</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       prisoner.status === 'convicted' ? 'bg-red-100 text-red-800' :
@@ -2161,7 +2220,7 @@ const PrisonManagementApp = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Crime:</span>
                   <span className="font-medium text-gray-900">{prisoner.crime}</span>
@@ -2183,7 +2242,7 @@ const PrisonManagementApp = () => {
               </div>
 
               {prisoner.medical_conditions && prisoner.medical_conditions.length > 0 && (
-                <div className="mt-3 p-2 bg-yellow-50 rounded-lg">
+                <div className="mt-2 sm:mt-3 p-2 bg-yellow-50 rounded-lg">
                   <p className="text-xs font-medium text-yellow-800">Medical Conditions:</p>
                   <p className="text-xs text-yellow-700">{prisoner.medical_conditions.join(', ')}</p>
                 </div>
@@ -2194,13 +2253,13 @@ const PrisonManagementApp = () => {
       </div>
 
       {getFilteredPrisoners().length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-200">
-          <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No prisoners found</h3>
-          <p className="text-gray-500 mb-4">Try adjusting your search filters or register a new prisoner.</p>
+        <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 text-center border border-gray-200">
+          <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No prisoners found</h3>
+          <p className="text-gray-500 mb-3 sm:mb-4 text-sm">Try adjusting your search filters or register a new prisoner.</p>
           <button
             onClick={() => setShowPrisonerForm(true)}
-            className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-sm"
+            className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-xs sm:text-sm"
           >
             Register Prisoner
           </button>
@@ -2209,35 +2268,35 @@ const PrisonManagementApp = () => {
     </div>
   );
 
-  // Visitors Management View
+  // Enhanced Visitors Management View with mobile optimizations
   const renderVisitorsView = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header and Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <div className="relative">
+      <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 border border-gray-200">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Search visitors..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm w-full"
               />
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
             <button
               onClick={() => generateVisitorsReport('excel')}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 text-sm"
+              className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <DownloadCloud size={14} />
-              <span>Excel Report</span>
+              <span className="hidden sm:inline">Excel Report</span>
             </button>
             <button
               onClick={() => setShowVisitorForm(true)}
-              className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-sm"
+              className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <UserPlus size={14} />
               <span>Add Visitor</span>
@@ -2247,7 +2306,7 @@ const PrisonManagementApp = () => {
       </div>
 
       {/* Visitors Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {getFilteredVisitors().map((visitor, index) => (
           <motion.div
             key={generateUniqueKey(visitor, 'visitor', index)}
@@ -2255,13 +2314,13 @@ const PrisonManagementApp = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300"
           >
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-3">
+            <div className="p-3 sm:p-4">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                     {visitor.first_name} {visitor.last_name}
                   </h3>
-                  <p className="text-sm text-gray-600">Relationship: {visitor.relationship}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Relationship: {visitor.relationship}</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       visitor.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
@@ -2300,7 +2359,7 @@ const PrisonManagementApp = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Prisoner:</span>
                   <span className="font-medium text-gray-900">{visitor.prisoner_name}</span>
@@ -2336,13 +2395,13 @@ const PrisonManagementApp = () => {
       </div>
 
       {getFilteredVisitors().length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-200">
-          <UserPlus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No visitors found</h3>
-          <p className="text-gray-500 mb-4">Try adjusting your search filters or register a new visitor.</p>
+        <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 text-center border border-gray-200">
+          <UserPlus className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No visitors found</h3>
+          <p className="text-gray-500 mb-3 sm:mb-4 text-sm">Try adjusting your search filters or register a new visitor.</p>
           <button
             onClick={() => setShowVisitorForm(true)}
-            className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-sm"
+            className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-xs sm:text-sm"
           >
             Register Visitor
           </button>
@@ -2351,15 +2410,15 @@ const PrisonManagementApp = () => {
     </div>
   );
 
-  // Cells Management View
+  // Enhanced Cells Management View with mobile optimizations
   const renderCellsView = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 border border-gray-200">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900">Prison Cells</h3>
           <button
             onClick={() => setShowCellForm(true)}
-            className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-sm"
+            className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-xs sm:text-sm"
           >
             <PlusCircle size={14} />
             <span>Add Cell</span>
@@ -2367,7 +2426,7 @@ const PrisonManagementApp = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {cells.map((cell, index) => (
           <motion.div
             key={generateUniqueKey(cell, 'cell', index)}
@@ -2375,9 +2434,9 @@ const PrisonManagementApp = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300"
           >
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">Cell {cell.cell_number}</h3>
+            <div className="p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Cell {cell.cell_number}</h3>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                   cell.status === 'available' ? 'bg-green-100 text-green-800' :
                   cell.status === 'full' ? 'bg-red-100 text-red-800' :
@@ -2387,7 +2446,7 @@ const PrisonManagementApp = () => {
                 </span>
               </div>
 
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Block:</span>
                   <span className="font-medium text-gray-900">{cell.block}</span>
@@ -2413,10 +2472,10 @@ const PrisonManagementApp = () => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2 mt-4">
+              <div className="flex items-center space-x-2 mt-3 sm:mt-4">
                 <button
                   onClick={() => handleDeleteCell(cell.id)}
-                  className="text-red-600 hover:text-red-800 p-1 rounded text-sm flex items-center space-x-1"
+                  className="text-red-600 hover:text-red-800 p-1 rounded text-xs sm:text-sm flex items-center space-x-1"
                   title="Delete Cell"
                 >
                   <Trash2 size={14} />
@@ -2429,13 +2488,13 @@ const PrisonManagementApp = () => {
       </div>
 
       {cells.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-200">
-          <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No cells found</h3>
-          <p className="text-gray-500 mb-4">Get started by creating your first prison cell.</p>
+        <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 text-center border border-gray-200">
+          <Building2 className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No cells found</h3>
+          <p className="text-gray-500 mb-3 sm:mb-4 text-sm">Get started by creating your first prison cell.</p>
           <button
             onClick={() => setShowCellForm(true)}
-            className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-sm"
+            className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-xs sm:text-sm"
           >
             Create Cell
           </button>
@@ -2444,27 +2503,27 @@ const PrisonManagementApp = () => {
     </div>
   );
 
-  // NEW: Officers Duty Management View
+  // Enhanced Officers Duty Management View with mobile optimizations
   const renderOfficersView = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header and Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <div className="relative">
+      <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 border border-gray-200">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Search officers or blocks..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm w-full"
               />
             </div>
             <select
               value={shiftFilter}
               onChange={(e) => setShiftFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm w-full sm:w-auto"
             >
               <option value="all">All Shifts</option>
               <option value="morning">Morning</option>
@@ -2472,17 +2531,17 @@ const PrisonManagementApp = () => {
               <option value="night">Night</option>
             </select>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
             <button
               onClick={() => loadOfficerDuties()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 text-sm"
+              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <RefreshCw size={14} />
-              <span>Refresh</span>
+              <span className="hidden sm:inline">Refresh</span>
             </button>
             <button
               onClick={() => setShowOfficerForm(true)}
-              className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-sm"
+              className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors flex items-center space-x-2 text-xs sm:text-sm"
             >
               <Clipboard size={14} />
               <span>Assign Duty</span>
@@ -2492,7 +2551,7 @@ const PrisonManagementApp = () => {
       </div>
 
       {/* Officer Duties Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {getFilteredOfficerDuties().map((duty, index) => (
           <motion.div
             key={generateUniqueKey(duty, 'officer-duty', index)}
@@ -2500,13 +2559,13 @@ const PrisonManagementApp = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-300"
           >
-            <div className="p-4">
-              <div className="flex items-start justify-between mb-3">
+            <div className="p-3 sm:p-4">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                     {duty.officer_name || 'Unknown Officer'}
                   </h3>
-                  <p className="text-sm text-gray-600">Block: {duty.block_assigned}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">Block: {duty.block_assigned}</p>
                   <div className="flex items-center space-x-2 mt-1">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       duty.shift === 'morning' ? 'bg-blue-100 text-blue-800' :
@@ -2541,7 +2600,7 @@ const PrisonManagementApp = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Officer:</span>
                   <span className="font-medium text-gray-900">{duty.officer_name}</span>
@@ -2579,13 +2638,13 @@ const PrisonManagementApp = () => {
       </div>
 
       {getFilteredOfficerDuties().length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-200">
-          <OfficersIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No duty assignments found</h3>
-          <p className="text-gray-500 mb-4">Try adjusting your search filters or assign a new duty.</p>
+        <div className="bg-white rounded-xl shadow-sm p-6 sm:p-8 text-center border border-gray-200">
+          <OfficersIcon className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No duty assignments found</h3>
+          <p className="text-gray-500 mb-3 sm:mb-4 text-sm">Try adjusting your search filters or assign a new duty.</p>
           <button
             onClick={() => setShowOfficerForm(true)}
-            className="bg-[#3A2C1E] text-white px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-sm"
+            className="bg-[#3A2C1E] text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-[#2A1F15] transition-colors text-xs sm:text-sm"
           >
             Assign Duty
           </button>
@@ -2594,14 +2653,14 @@ const PrisonManagementApp = () => {
 
       {/* Available Officers Summary */}
       {availableOfficers.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Officers</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Available Officers</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {availableOfficers.slice(0, 4).map((officer, index) => (
-              <div key={generateUniqueKey(officer, 'available-officer', index)} className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-orange-600" />
+              <div key={generateUniqueKey(officer, 'available-officer', index)} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
@@ -2614,7 +2673,7 @@ const PrisonManagementApp = () => {
             ))}
           </div>
           {availableOfficers.length > 4 && (
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-gray-500 mt-2 sm:mt-3">
               +{availableOfficers.length - 4} more officers available
             </p>
           )}
@@ -2623,38 +2682,38 @@ const PrisonManagementApp = () => {
     </div>
   );
 
-  // Reports View
+  // Enhanced Reports View with mobile optimizations
   const renderReportsView = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+    <div className="space-y-4 sm:space-y-6">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Reports & Analytics</h2>
 
       {/* Report Generation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm p-6 border border-gray-200"
+          className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200"
         >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900">Prisoners Report</h3>
-              <p className="text-gray-600 text-sm">Generate comprehensive prisoners report</p>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">Prisoners Report</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Generate comprehensive prisoners report</p>
             </div>
           </div>
-          <div className="flex space-x-2 mt-4">
+          <div className="flex space-x-2 mt-3 sm:mt-4">
             <button
               onClick={() => generatePrisonersReport('excel')}
-              className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-sm"
+              className="flex-1 bg-green-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm"
             >
               <DownloadCloud size={14} />
               <span>Excel</span>
             </button>
             <button
               onClick={() => generatePrisonersReport('pdf')}
-              className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 text-sm"
+              className="flex-1 bg-red-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm"
             >
               <FileText size={14} />
               <span>PDF</span>
@@ -2666,21 +2725,21 @@ const PrisonManagementApp = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl shadow-sm p-6 border border-gray-200"
+          className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200"
         >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <UserPlus className="w-6 h-6 text-green-600" />
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <UserPlus className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900">Visitors Report</h3>
-              <p className="text-gray-600 text-sm">Generate comprehensive visitors report</p>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">Visitors Report</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Generate comprehensive visitors report</p>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <button
               onClick={() => generateVisitorsReport('excel')}
-              className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-sm"
+              className="w-full bg-green-600 text-white py-2 px-3 sm:px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm"
             >
               <DownloadCloud size={14} />
               <span>Generate Excel Report</span>
@@ -2690,71 +2749,74 @@ const PrisonManagementApp = () => {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200">
           <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-blue-600" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{dashboardSummary?.total_prisoners || 0}</h3>
-            <p className="text-gray-600">Total Prisoners</p>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardSummary?.total_prisoners || 0}</h3>
+            <p className="text-gray-600 text-sm">Total Prisoners</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200">
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserPlus className="w-8 h-8 text-green-600" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{dashboardSummary?.visitors_this_week || 0}</h3>
-            <p className="text-gray-600">Visitors This Week</p>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardSummary?.visitors_this_week || 0}</h3>
+            <p className="text-gray-600 text-sm">Visitors This Week</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200">
           <div className="text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Building2 className="w-8 h-8 text-purple-600" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900">{dashboardSummary?.total_cells || 0}</h3>
-            <p className="text-gray-600">Total Cells</p>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900">{dashboardSummary?.total_cells || 0}</h3>
+            <p className="text-gray-600 text-sm">Total Cells</p>
           </div>
         </div>
       </div>
     </div>
   );
 
-  // Main Layout
+  // Enhanced Main Layout with mobile optimizations
   return (
     <div className="min-h-screen bg-gray-50">
-      <ToastContainer position="top-right" autoClose={5000} />
+      <ToastContainer 
+        position={isMobile ? "top-center" : "top-right"} 
+        autoClose={5000} 
+      />
       <NotificationSystem />
       
-      {/* Header - UPDATED WITH DEEP BROWN GHANA PRISON SERVICE COLORS */}
+      {/* Enhanced Header with mobile optimizations */}
       <header className="bg-gradient-to-r from-[#3A2C1E] to-[#2A1F15] shadow-lg border-b border-[#5D4C3A] relative z-10">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="px-3 sm:px-4 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Left side */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {isMobile && (
                 <button
                   onClick={() => setSidebarOpen(true)}
                   className="p-2 rounded-lg hover:bg-[#5D4C3A] lg:hidden"
                 >
-                  <Menu size={20} className="text-white" />
+                  <Menu size={18} className="text-white" />
                 </button>
               )}
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-red-600 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-white" />
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-yellow-400 to-red-600 rounded-lg flex items-center justify-center">
+                  <Shield className="w-3 h-3 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <h1 className="text-xl font-bold text-white">Prison Management System</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-white">Prison Management System</h1>
               </div>
             </div>
 
             {/* Right side */}
-            <div className="flex items-center space-x-4">
-              <div className="hidden sm:block text-sm text-[#D4B996]">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="hidden sm:block text-xs sm:text-sm text-[#D4B996]">
                 Welcome, <span className="font-medium text-white">{user?.first_name} {user?.last_name}</span>
               </div>
               <div className="text-xs px-2 py-1 bg-yellow-400 text-[#3A2C1E] rounded-full font-medium">
@@ -2762,17 +2824,17 @@ const PrisonManagementApp = () => {
               </div>
               <button
                 onClick={() => setShowAIChat(true)}
-                className="text-[#D4B996] hover:text-white p-2 rounded-lg hover:bg-[#5D4C3A] transition-colors"
+                className="text-[#D4B996] hover:text-white p-1 sm:p-2 rounded-lg hover:bg-[#5D4C3A] transition-colors"
                 title="AI Assistant"
               >
-                <MessageCircle size={20} />
+                <MessageCircle size={18} />
               </button>
               <button
                 onClick={handleLogout}
-                className="text-[#D4B996] hover:text-white p-2 rounded-lg hover:bg-[#5D4C3A] transition-colors"
+                className="text-[#D4B996] hover:text-white p-1 sm:p-2 rounded-lg hover:bg-[#5D4C3A] transition-colors"
                 title="Logout"
               >
-                <LogOut size={20} />
+                <LogOut size={18} />
               </button>
             </div>
           </div>
@@ -2784,8 +2846,8 @@ const PrisonManagementApp = () => {
         {!isMobile && <Sidebar />}
         {isMobile && sidebarOpen && <Sidebar />}
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-x-hidden">
+        {/* Enhanced Main Content with mobile padding */}
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden">
           {currentView === 'dashboard' && renderDashboard()}
           {currentView === 'prisoners' && renderPrisonersView()}
           {currentView === 'visitors' && renderVisitorsView()}
@@ -2825,7 +2887,7 @@ const PrisonManagementApp = () => {
         isLoading={isLoading}
       />
 
-      {/* NEW: Officer Duty Modals */}
+      {/* Officer Duty Modals */}
       <OfficerRegistrationModal
         isOpen={showOfficerForm}
         onClose={() => setShowOfficerForm(false)}
