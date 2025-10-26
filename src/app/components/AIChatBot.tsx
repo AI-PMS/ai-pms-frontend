@@ -30,7 +30,7 @@ const AIChatBot: React.FC<AIChatBotProps> = ({ isOpen, onClose, token }) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-pms-backend.onrender.com/api/v1';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,6 +53,7 @@ const AIChatBot: React.FC<AIChatBotProps> = ({ isOpen, onClose, token }) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage;
     setInputMessage('');
     setIsLoading(true);
 
@@ -64,13 +65,20 @@ const AIChatBot: React.FC<AIChatBotProps> = ({ isOpen, onClose, token }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          message: inputMessage
+          message: currentInput
         })
       });
 
-      const result = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
 
-      if (result.success) {
+      const result = await response.json();
+      
+      // FIXED: Backend returns { response: string, timestamp: string } directly
+      // Not wrapped in a success object
+      if (result.response) {
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
@@ -79,13 +87,14 @@ const AIChatBot: React.FC<AIChatBotProps> = ({ isOpen, onClose, token }) => {
         };
         setMessages(prev => [...prev, assistantMessage]);
       } else {
-        throw new Error(result.detail || 'Failed to get response');
+        throw new Error('No response from AI');
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('AI Chat Error:', error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        message: 'Sorry, I encountered an error. Please try again later.',
+        message: `Sorry, I encountered an error: ${error.message || 'Please try again later.'}`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -184,7 +193,7 @@ const AIChatBot: React.FC<AIChatBotProps> = ({ isOpen, onClose, token }) => {
                         {message.type === 'assistant' ? 'AI Assistant' : 'You'}
                       </span>
                     </div>
-                    <p className="text-sm">{message.message}</p>
+                    <p className="text-sm whitespace-pre-wrap">{message.message}</p>
                     <p className="text-xs opacity-75 mt-2">
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
