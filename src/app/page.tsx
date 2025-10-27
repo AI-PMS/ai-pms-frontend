@@ -265,12 +265,6 @@ interface OfficerDuty {
   officer_email: string;
 }
 
-interface SystemStatus {
-  user_count: number;
-  registration_allowed: boolean;
-  first_user_registration: boolean;
-}
-
 interface DashboardSummary {
   total_prisoners: number;
   prisoners_this_week: number;
@@ -301,8 +295,7 @@ const PrisonManagementApp = () => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showRegister, setShowRegister] = useState(true);
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
+  const [showRegister, setShowRegister] = useState(false); // Default to login form
 
   // Form States
   const [loginForm, setLoginForm] = useState({ 
@@ -392,28 +385,12 @@ const PrisonManagementApp = () => {
     };
   }, []);
 
-  // Check authentication and system status on mount
+  // Check authentication on mount - REMOVED SYSTEM STATUS CHECK
   useEffect(() => {
     checkAuth();
-    checkSystemStatus();
   }, []);
 
-  // Check system status to determine if registration should be shown
-  const checkSystemStatus = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/system-status`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setSystemStatus(result.data);
-        setShowRegister(result.data.first_user_registration);
-      }
-    } catch (error) {
-      console.error('Failed to fetch system status:', error);
-    }
-  };
-
-  // Enhanced authentication check
+  // Enhanced authentication check - REMOVED SYSTEM STATUS DEPENDENCY
   const checkAuth = async () => {
     try {
       const savedToken = localStorage.getItem('token');
@@ -443,15 +420,6 @@ const PrisonManagementApp = () => {
             setUser(result.data || result);
             setIsAuthenticated(true);
             
-            // Check system status to update register form visibility
-            const statusResponse = await fetch(`${API_BASE_URL}/auth/system-status`);
-            const statusResult = await statusResponse.json();
-            
-            if (statusResult.success) {
-              setSystemStatus(statusResult.data);
-              setShowRegister(statusResult.data.first_user_registration);
-            }
-
             // AUTO-REDIRECT TO DASHBOARD IF AUTHENTICATED
             setCurrentView('dashboard');
             await loadDashboardData(); // Load data immediately
@@ -616,9 +584,6 @@ const PrisonManagementApp = () => {
         // Store in localStorage
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(userData));
-
-        // Update system status after registration
-        await checkSystemStatus();
 
         setNotifications(prev => [...prev, {
           id: Date.now() + Math.random(),
@@ -1420,7 +1385,7 @@ const PrisonManagementApp = () => {
                     transition={{ delay: 0.3 }}
                     className="text-2xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-blue-600 to-red-600 bg-clip-text text-transparent"
                   >
-                    Prison Management System
+                    {isMobile ? "GhanaPMS" : "Prison Management System"}
                   </motion.h1>
                   <motion.p 
                     initial={{ opacity: 0 }}
@@ -1432,7 +1397,31 @@ const PrisonManagementApp = () => {
                   </motion.p>
                 </div>
 
-                {/* Form Container - FIXED: Using MobileOptimizedInput components */}
+                {/* Form Toggle */}
+                <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+                  <button
+                    onClick={() => setShowRegister(false)}
+                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      !showRegister 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => setShowRegister(true)}
+                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      showRegister 
+                        ? 'bg-white text-gray-900 shadow-sm' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Register
+                  </button>
+                </div>
+
+                {/* Form Container */}
                 <div className="max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
                   {showRegister ? (
                     <motion.div
@@ -1586,17 +1575,15 @@ const PrisonManagementApp = () => {
                           )}
                         </motion.button>
                       </form>
-                      {systemStatus && !systemStatus.first_user_registration && (
-                        <p className="text-center mt-4 text-sm text-gray-600">
-                          Already have an account?{' '}
-                          <button
-                            onClick={() => setShowRegister(false)}
-                            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                          >
-                            Login here
-                          </button>
-                        </p>
-                      )}
+                      <p className="text-center mt-4 text-sm text-gray-600">
+                        Already have an account?{' '}
+                        <button
+                          onClick={() => setShowRegister(false)}
+                          className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          Login here
+                        </button>
+                      </p>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -1658,17 +1645,15 @@ const PrisonManagementApp = () => {
                           )}
                         </motion.button>
                       </form>
-                      {systemStatus?.first_user_registration && (
-                        <p className="text-center mt-4 text-sm text-gray-600">
-                          Need to register your institution?{' '}
-                          <button
-                            onClick={() => setShowRegister(true)}
-                            className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                          >
-                            Register here
-                          </button>
-                        </p>
-                      )}
+                      <p className="text-center mt-4 text-sm text-gray-600">
+                        Need to register your institution?{' '}
+                        <button
+                          onClick={() => setShowRegister(true)}
+                          className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          Register here
+                        </button>
+                      </p>
                     </motion.div>
                   )}
                 </div>
@@ -1751,7 +1736,9 @@ const PrisonManagementApp = () => {
                 <Shield className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-base sm:text-lg font-bold text-white">PrisonMS</h1>
+                <h1 className="text-base sm:text-lg font-bold text-white">
+                  {isMobile ? "GhanaPMS" : "PrisonMS"}
+                </h1>
                 <p className="text-[#D4B996] text-xs">Ghana Prison Service</p>
               </div>
             </div>
@@ -2793,7 +2780,9 @@ const PrisonManagementApp = () => {
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-yellow-400 to-red-600 rounded-lg flex items-center justify-center mobile-header-logo">
                   <Shield className="w-3 h-3 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <h1 className="text-lg sm:text-xl font-bold text-white mobile-header-title">Prison Management System</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-white mobile-header-title">
+                  {isMobile ? "GhanaPMS" : "Prison Management System"}
+                </h1>
               </div>
             </div>
 
@@ -2854,19 +2843,6 @@ const PrisonManagementApp = () => {
               title="AI Assistant"
             >
               <MessageCircle size={20} />
-            </button>
-            <button
-              onClick={() => {
-                if (currentView === 'prisoners') setShowPrisonerForm(true);
-                else if (currentView === 'visitors') setShowVisitorForm(true);
-                else if (currentView === 'cells') setShowCellForm(true);
-                else if (currentView === 'officers') setShowOfficerForm(true);
-                else setShowPrisonerForm(true);
-              }}
-              className="bg-[#3A2C1E] text-white p-3 rounded-full shadow-lg hover:bg-[#2A1F15] transition-colors mobile-fab-button"
-              title="Quick Add"
-            >
-              <PlusCircle size={20} />
             </button>
           </div>
         </div>
