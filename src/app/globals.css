@@ -188,3 +188,115 @@ body {
     margin-top: 16px;
   }
 }
+
+/* Force visibility of input values on mobile */
+.mobile-optimized-input,
+.mobile-optimized-textarea,
+.mobile-optimized-select {
+  /* Prevent iOS zoom on focus */
+  font-size: 16px !important;
+  
+  /* Better touch targets */
+  min-height: 44px !important;
+  
+  /* Remove default appearance */
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  
+  /* Ensure text is visible */
+  color: #000 !important;
+  background-color: #fff !important;
+  
+  /* Force hardware acceleration for better rendering */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  
+  /* Disable autocorrect/autocomplete issues */
+  -webkit-text-fill-color: #000 !important;
+  
+  /* Fix for Safari mobile rendering */
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Force focus state to show content */
+.mobile-optimized-input:focus,
+.mobile-optimized-textarea:focus,
+.mobile-optimized-select:focus {
+  color: #000 !important;
+  background-color: #fff !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #000 !important;
+  outline: none !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Fix for placeholder text */
+.mobile-optimized-input::placeholder,
+.mobile-optimized-textarea::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Prevent iOS from styling inputs */
+.mobile-optimized-input::-webkit-input-placeholder,
+.mobile-optimized-textarea::-webkit-input-placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Fix for autofill on mobile */
+.mobile-optimized-input:-webkit-autofill,
+.mobile-optimized-input:-webkit-autofill:hover,
+.mobile-optimized-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Additional mobile-specific fixes */
+@media (max-width: 768px) {
+  /* Prevent viewport scaling on input focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  
+  /* Force immediate visibility of typed content */
+  .mobile-optimized-input,
+  .mobile-optimized-textarea,
+  .mobile-optimized-select {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+  }
+  
+  /* Fix for iOS Safari text rendering bug */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Force repaint on input change (critical for mobile) */
+.mobile-optimized-input:not(:placeholder-shown),
+.mobile-optimized-textarea:not(:placeholder-shown) {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+/* Ensure select dropdowns are visible on mobile */
+.mobile-optimized-select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 12px !important;
+  padding-right: 40px !important;
+}
