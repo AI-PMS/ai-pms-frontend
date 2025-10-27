@@ -121,6 +121,7 @@ import CellRegistrationModal from './components/CellRegistrationModal';
 import AIChatBot from './components/AIChatBot';
 import OfficerRegistrationModal from './components/OfficerRegistrationModal';
 import OfficerEditModal from './components/OfficerEditModal';
+import { MobileOptimizedInput, MobileOptimizedTextArea, MobileOptimizedSelect } from './components/MobileOptimizedInputs';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-pms-backend.onrender.com/api/v1';
 
@@ -140,72 +141,7 @@ interface MobileOptimizedSelectProps extends React.SelectHTMLAttributes<HTMLSele
   className?: string;
 }
 
-// Mobile-Optimized Input Components - EXPORT THESE
-export const MobileOptimizedInput = ({ 
-  className = '', 
-  error = false,
-  ...props 
-}: MobileOptimizedInputProps) => {
-  return (
-    <input
-      {...props}
-      className={`w-full px-4 py-3 border rounded-lg transition-colors mobile-optimized-input ${className} ${
-        error ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-      }`}
-      style={{
-        fontSize: '16px !important',
-        minHeight: '44px',
-        WebkitAppearance: 'none',
-        MozAppearance: 'none',
-        appearance: 'none',
-      }}
-    />
-  );
-};
 
-export const MobileOptimizedTextArea = ({ 
-  className = '', 
-  error = false,
-  ...props 
-}: MobileOptimizedTextAreaProps) => {
-  return (
-    <textarea
-      {...props}
-      className={`w-full px-4 py-3 border rounded-lg transition-colors mobile-optimized-textarea ${className} ${
-        error ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-      }`}
-      style={{
-        fontSize: '16px !important',
-        minHeight: '44px',
-        WebkitAppearance: 'none',
-        MozAppearance: 'none',
-        appearance: 'none',
-      }}
-    />
-  );
-};
-
-export const MobileOptimizedSelect = ({ 
-  className = '', 
-  error = false,
-  ...props 
-}: MobileOptimizedSelectProps) => {
-  return (
-    <select
-      {...props}
-      className={`w-full px-4 py-3 border rounded-lg transition-colors mobile-optimized-select ${className} ${
-        error ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-      }`}
-      style={{
-        fontSize: '16px !important',
-        minHeight: '44px',
-        WebkitAppearance: 'none',
-        MozAppearance: 'none',
-        appearance: 'none',
-      }}
-    />
-  );
-};
 
 // Validation functions
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?$/;
