@@ -274,13 +274,6 @@ interface DashboardSummary {
   officers_on_duty_today: number;
 }
 
-interface Notification {
-  id: string | number;
-  type: 'success' | 'error' | 'warning' | 'info';
-  message: string;
-  duration: number;
-}
-
 interface AnalyticsCardProps {
   title: string;
   value: number;
@@ -325,7 +318,6 @@ const PrisonManagementApp = () => {
   const [officerDuties, setOfficerDuties] = useState<OfficerDuty[]>([]);
   const [availableOfficers, setAvailableOfficers] = useState<Officer[]>([]);
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -487,12 +479,14 @@ const PrisonManagementApp = () => {
       return result;
     } catch (error: any) {
       console.error('API Error:', error);
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'API call failed',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'API call failed', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       throw error;
     }
   };
@@ -585,12 +579,14 @@ const PrisonManagementApp = () => {
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(userData));
 
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: result.message || 'Registration successful!',
-          duration: 3000
-        }]);
+        toast.success(result.message || 'Registration successful!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
 
         // FORCE REDIRECT TO DASHBOARD - Clear any pending states
         setTimeout(() => {
@@ -600,12 +596,14 @@ const PrisonManagementApp = () => {
         }, 100);
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Registration failed',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Registration failed', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -643,12 +641,14 @@ const PrisonManagementApp = () => {
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(userData));
 
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: result.message || `Welcome back, ${userData.first_name}!`,
-          duration: 3000
-        }]);
+        toast.success(result.message || `Welcome back, ${userData.first_name}!`, {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
 
         // IMMEDIATE REDIRECT TO DASHBOARD
         setCurrentView('dashboard');
@@ -665,12 +665,14 @@ const PrisonManagementApp = () => {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Login failed. Please check your credentials.',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Login failed. Please check your credentials.', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -683,12 +685,14 @@ const PrisonManagementApp = () => {
     setToken(null);
     setIsAuthenticated(false);
     setCurrentView('dashboard');
-    setNotifications(prev => [...prev, {
-      id: Date.now() + Math.random(),
-      type: 'info',
-      message: 'Logged out successfully',
-      duration: 3000
-    }]);
+    toast.info('Logged out successfully', {
+      position: isMobile ? "top-center" : "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
   };
 
   // Data Loading Functions
@@ -762,24 +766,28 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Officer duty assigned successfully!',
-          duration: 3000
-        }]);
+        toast.success('Officer duty assigned successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         setShowOfficerForm(false);
         loadOfficerDuties();
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to assign officer duty',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to assign officer duty', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -795,12 +803,14 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Officer duty updated successfully!',
-          duration: 3000
-        }]);
+        toast.success('Officer duty updated successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         setShowOfficerEditModal(false);
         setSelectedOfficerDuty(null);
@@ -808,12 +818,14 @@ const PrisonManagementApp = () => {
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to update officer duty',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to update officer duty', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -832,23 +844,27 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Duty assignment deleted successfully!',
-          duration: 3000
-        }]);
+        toast.success('Duty assignment deleted successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         loadOfficerDuties();
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to delete duty assignment',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to delete duty assignment', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -865,23 +881,27 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Prisoner registered successfully!',
-          duration: 3000
-        }]);
+        toast.success('Prisoner registered successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         setShowPrisonerForm(false);
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to register prisoner',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to register prisoner', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -897,24 +917,28 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Prisoner updated successfully!',
-          duration: 3000
-        }]);
+        toast.success('Prisoner updated successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         setShowPrisonerEditModal(false);
         setSelectedPrisoner(null);
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to update prisoner',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to update prisoner', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -933,22 +957,26 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Prisoner record deleted successfully!',
-          duration: 3000
-        }]);
+        toast.success('Prisoner record deleted successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to delete prisoner',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to delete prisoner', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -965,23 +993,27 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Visitor registered successfully!',
-          duration: 3000
-        }]);
+        toast.success('Visitor registered successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         setShowVisitorForm(false);
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to register visitor',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to register visitor', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -997,24 +1029,28 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Visitor updated successfully!',
-          duration: 3000
-        }]);
+        toast.success('Visitor updated successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         setShowVisitorEditModal(false);
         setSelectedVisitor(null);
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to update visitor',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to update visitor', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1033,22 +1069,26 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Visitor record deleted successfully!',
-          duration: 3000
-        }]);
+        toast.success('Visitor record deleted successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to delete visitor',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to delete visitor', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1063,22 +1103,26 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Visitor approved successfully!',
-          duration: 3000
-        }]);
+        toast.success('Visitor approved successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to approve visitor',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to approve visitor', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1095,23 +1139,27 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Cell created successfully!',
-          duration: 3000
-        }]);
+        toast.success('Cell created successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         setShowCellForm(false);
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to create cell',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to create cell', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1130,22 +1178,26 @@ const PrisonManagementApp = () => {
       });
 
       if (result.message) {
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: 'Cell deleted successfully!',
-          duration: 3000
-        }]);
+        toast.success('Cell deleted successfully!', {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         
         loadDashboardData();
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to delete cell',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to delete cell', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1175,20 +1227,24 @@ const PrisonManagementApp = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: `Prisoners report generated successfully in ${format.toUpperCase()} format!`,
-          duration: 3000
-        }]);
+        toast.success(`Prisoners report generated successfully in ${format.toUpperCase()} format!`, {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to generate report',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to generate report', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -1217,20 +1273,24 @@ const PrisonManagementApp = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
 
-        setNotifications(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          type: 'success',
-          message: `Visitors report generated successfully in Excel format!`,
-          duration: 3000
-        }]);
+        toast.success(`Visitors report generated successfully in Excel format!`, {
+          position: isMobile ? "top-center" : "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     } catch (error: any) {
-      setNotifications(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        type: 'error',
-        message: error.message || 'Failed to generate report',
-        duration: 5000
-      }]);
+      toast.error(error.message || 'Failed to generate report', {
+        position: isMobile ? "top-center" : "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -1277,50 +1337,6 @@ const PrisonManagementApp = () => {
     });
   };
 
-  // Notification Component
-  const NotificationSystem = () => {
-    useEffect(() => {
-      if (notifications.length > 0) {
-        const timer = setTimeout(() => {
-          setNotifications(prev => prev.slice(1));
-        }, notifications[0].duration || 5000);
-
-        return () => clearTimeout(timer);
-      }
-    }, [notifications]);
-
-    return (
-      <div className={`fixed z-50 space-y-2 w-full max-w-xs notification-container ${
-        isMobile ? 'top-2 right-2' : 'top-4 right-4'
-      }`}>
-        {notifications.map((notif) => (
-          <motion.div
-            key={notif.id}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            className={`p-4 rounded-lg shadow-lg transform transition-all duration-300 mobile-notification ${
-              notif.type === 'success' ? 'bg-green-500 text-white' :
-              notif.type === 'error' ? 'bg-red-500 text-white' :
-              notif.type === 'warning' ? 'bg-yellow-500 text-white' :
-              'bg-blue-500 text-white'
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">{notif.message}</span>
-              <button
-                onClick={() => setNotifications(prev => prev.filter(n => n.id !== notif.id))}
-                className="ml-2 text-white hover:opacity-75"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    );
-  };
-
   // Dashboard Analytics Cards with Framer Motion - MOBILE OPTIMIZED
   const AnalyticsCard = ({ title, value, icon: Icon, color, change }: AnalyticsCardProps) => (
     <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300 mobile-analytics-card">
@@ -1356,8 +1372,18 @@ const PrisonManagementApp = () => {
         <div className="absolute bottom-10 right-10 w-32 h-32 bg-red-400/10 rounded-full blur-xl animate-pulse"></div>
         <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-green-400/10 rounded-full blur-lg animate-ping"></div>
         
-        <ToastContainer position="top-right" autoClose={5000} />
-        <NotificationSystem />
+        <ToastContainer 
+          position={isMobile ? "top-center" : "top-right"}
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          className="mobile-toast-container"
+        />
         
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -2756,11 +2782,17 @@ const PrisonManagementApp = () => {
   return (
     <div className="min-h-screen bg-gray-50 mobile-app-container">
       <ToastContainer 
-        position={isMobile ? "top-center" : "top-right"} 
+        position={isMobile ? "top-center" : "top-right"}
         autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
         className="mobile-toast-container"
       />
-      <NotificationSystem />
       
       {/* Header - MOBILE OPTIMIZED */}
       <header className="bg-gradient-to-r from-[#3A2C1E] to-[#2A1F15] shadow-lg border-b border-[#5D4C3A] relative z-10 mobile-header">
