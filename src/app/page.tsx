@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { 
   User, 
   Building2, 
@@ -123,6 +123,89 @@ import OfficerRegistrationModal from './components/OfficerRegistrationModal';
 import OfficerEditModal from './components/OfficerEditModal';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-pms-backend.onrender.com/api/v1';
+
+// Proper TypeScript interfaces for mobile-optimized components
+interface MobileOptimizedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: boolean;
+  className?: string;
+}
+
+interface MobileOptimizedTextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  error?: boolean;
+  className?: string;
+}
+
+interface MobileOptimizedSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  error?: boolean;
+  className?: string;
+}
+
+// Mobile-Optimized Input Components - EXPORT THESE
+export const MobileOptimizedInput = ({ 
+  className = '', 
+  error = false,
+  ...props 
+}: MobileOptimizedInputProps) => {
+  return (
+    <input
+      {...props}
+      className={`w-full px-4 py-3 border rounded-lg transition-colors mobile-optimized-input ${className} ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+      }`}
+      style={{
+        fontSize: '16px !important',
+        minHeight: '44px',
+        WebkitAppearance: 'none',
+        MozAppearance: 'none',
+        appearance: 'none',
+      }}
+    />
+  );
+};
+
+export const MobileOptimizedTextArea = ({ 
+  className = '', 
+  error = false,
+  ...props 
+}: MobileOptimizedTextAreaProps) => {
+  return (
+    <textarea
+      {...props}
+      className={`w-full px-4 py-3 border rounded-lg transition-colors mobile-optimized-textarea ${className} ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+      }`}
+      style={{
+        fontSize: '16px !important',
+        minHeight: '44px',
+        WebkitAppearance: 'none',
+        MozAppearance: 'none',
+        appearance: 'none',
+      }}
+    />
+  );
+};
+
+export const MobileOptimizedSelect = ({ 
+  className = '', 
+  error = false,
+  ...props 
+}: MobileOptimizedSelectProps) => {
+  return (
+    <select
+      {...props}
+      className={`w-full px-4 py-3 border rounded-lg transition-colors mobile-optimized-select ${className} ${
+        error ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+      }`}
+      style={{
+        fontSize: '16px !important',
+        minHeight: '44px',
+        WebkitAppearance: 'none',
+        MozAppearance: 'none',
+        appearance: 'none',
+      }}
+    />
+  );
+};
 
 // Validation functions
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?$/;
@@ -279,6 +362,21 @@ interface DashboardSummary {
   officers_on_duty_today: number;
 }
 
+interface Notification {
+  id: string | number;
+  type: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  duration: number;
+}
+
+interface AnalyticsCardProps {
+  title: string;
+  value: number;
+  icon: React.ComponentType<any>;
+  color: string;
+  change?: number;
+}
+
 const PrisonManagementApp = () => {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -316,7 +414,7 @@ const PrisonManagementApp = () => {
   const [officerDuties, setOfficerDuties] = useState<OfficerDuty[]>([]);
   const [availableOfficers, setAvailableOfficers] = useState<Officer[]>([]);
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // UI States
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -772,37 +870,37 @@ const PrisonManagementApp = () => {
   };
 
   const handleCreateOfficerDuty = async (dutyData: any) => {
-  setIsLoading(true);
+    setIsLoading(true);
 
-  try {
-    const result = await apiCall('/officers/duty', {
-      method: 'POST',
-      body: JSON.stringify(dutyData)
-    });
+    try {
+      const result = await apiCall('/officers/duty', {
+        method: 'POST',
+        body: JSON.stringify(dutyData)
+      });
 
-    if (result.message) {
+      if (result.message) {
+        setNotifications(prev => [...prev, {
+          id: Date.now() + Math.random(),
+          type: 'success',
+          message: 'Officer duty assigned successfully!',
+          duration: 3000
+        }]);
+        
+        setShowOfficerForm(false);
+        loadOfficerDuties();
+        loadDashboardData();
+      }
+    } catch (error: any) {
       setNotifications(prev => [...prev, {
         id: Date.now() + Math.random(),
-        type: 'success',
-        message: 'Officer duty assigned successfully!',
-        duration: 3000
+        type: 'error',
+        message: error.message || 'Failed to assign officer duty',
+        duration: 5000
       }]);
-      
-      setShowOfficerForm(false);
-      loadOfficerDuties();
-      loadDashboardData();
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error: any) {
-    setNotifications(prev => [...prev, {
-      id: Date.now() + Math.random(),
-      type: 'error',
-      message: error.message || 'Failed to assign officer duty',
-      duration: 5000
-    }]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleUpdateOfficerDuty = async (dutyId: string, dutyData: any) => {
     setIsLoading(true);
@@ -1296,68 +1394,6 @@ const PrisonManagementApp = () => {
     });
   };
 
-  // Enhanced Mobile-Optimized Input Component
-  const MobileOptimizedInput = ({ 
-    type = 'text', 
-    value, 
-    onChange, 
-    placeholder, 
-    className = '', 
-    ...props 
-  }: any) => {
-    return (
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className={`mobile-optimized-input ${className}`}
-        {...props}
-      />
-    );
-  };
-
-  // Enhanced Mobile-Optimized TextArea Component
-  const MobileOptimizedTextArea = ({ 
-    value, 
-    onChange, 
-    placeholder, 
-    className = '', 
-    rows = 3,
-    ...props 
-  }: any) => {
-    return (
-      <textarea
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        rows={rows}
-        className={`mobile-optimized-textarea ${className}`}
-        {...props}
-      />
-    );
-  };
-
-  // Enhanced Mobile-Optimized Select Component
-  const MobileOptimizedSelect = ({ 
-    value, 
-    onChange, 
-    children, 
-    className = '', 
-    ...props 
-  }: any) => {
-    return (
-      <select
-        value={value}
-        onChange={onChange}
-        className={`mobile-optimized-select ${className}`}
-        {...props}
-      >
-        {children}
-      </select>
-    );
-  };
-
   // Notification Component
   const NotificationSystem = () => {
     useEffect(() => {
@@ -1401,6 +1437,29 @@ const PrisonManagementApp = () => {
       </div>
     );
   };
+
+  // Dashboard Analytics Cards with Framer Motion - MOBILE OPTIMIZED
+  const AnalyticsCard = ({ title, value, icon: Icon, color, change }: AnalyticsCardProps) => (
+    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300 mobile-analytics-card">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs sm:text-sm font-medium text-gray-600 mobile-analytics-title">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2 mobile-analytics-value">{value}</p>
+          {change && (
+            <p className={`text-xs mt-1 flex items-center mobile-analytics-change ${
+              change > 0 ? 'text-green-600' : 'text-red-600'
+            }`}>
+              <TrendingUp size={12} className={`mr-1 ${change > 0 ? '' : 'rotate-180'}`} />
+              {Math.abs(change)}% from last week
+            </p>
+          )}
+        </div>
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${color} rounded-full flex items-center justify-center mobile-analytics-icon`}>
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        </div>
+      </div>
+    </div>
+  );
 
   // Login/Register Form - MOBILE OPTIMIZED
   if (!isAuthenticated) {
@@ -1455,7 +1514,7 @@ const PrisonManagementApp = () => {
                   </motion.p>
                 </div>
 
-                {/* Form Container - FIXED: Using regular input fields without custom components */}
+                {/* Form Container - FIXED: Using MobileOptimizedInput components */}
                 <div className="max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
                   {showRegister ? (
                     <motion.div
@@ -1467,14 +1526,12 @@ const PrisonManagementApp = () => {
                       <form onSubmit={handleRegister} className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <input
+                            <MobileOptimizedInput
                               type="text"
                               placeholder="First Name"
                               value={registerForm.first_name}
-                              onChange={(e) => setRegisterForm(prev => ({ ...prev, first_name: e.target.value }))}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                                formErrors.first_name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                              }`}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, first_name: e.target.value }))}
+                              error={!!formErrors.first_name}
                               required
                             />
                             {formErrors.first_name && (
@@ -1482,14 +1539,12 @@ const PrisonManagementApp = () => {
                             )}
                           </div>
                           <div>
-                            <input
+                            <MobileOptimizedInput
                               type="text"
                               placeholder="Last Name"
                               value={registerForm.last_name}
-                              onChange={(e) => setRegisterForm(prev => ({ ...prev, last_name: e.target.value }))}
-                              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                                formErrors.last_name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                              }`}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, last_name: e.target.value }))}
+                              error={!!formErrors.last_name}
                               required
                             />
                             {formErrors.last_name && (
@@ -1499,14 +1554,12 @@ const PrisonManagementApp = () => {
                         </div>
                         
                         <div>
-                          <input
+                          <MobileOptimizedInput
                             type="email"
                             placeholder="Official Email"
                             value={registerForm.email}
-                            onChange={(e) => setRegisterForm(prev => ({ ...prev, email: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, email: e.target.value }))}
+                            error={!!formErrors.email}
                             required
                           />
                           {formErrors.email && (
@@ -1515,14 +1568,12 @@ const PrisonManagementApp = () => {
                         </div>
                         
                         <div>
-                          <input
+                          <MobileOptimizedInput
                             type="text"
                             placeholder="Phone Number"
                             value={registerForm.phone}
-                            onChange={(e) => setRegisterForm(prev => ({ ...prev, phone: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, phone: e.target.value }))}
+                            error={!!formErrors.phone}
                             required
                           />
                           {formErrors.phone && (
@@ -1531,14 +1582,12 @@ const PrisonManagementApp = () => {
                         </div>
                         
                         <div>
-                          <input
+                          <MobileOptimizedInput
                             type="text"
                             placeholder="Institution Name"
                             value={registerForm.institution_name}
-                            onChange={(e) => setRegisterForm(prev => ({ ...prev, institution_name: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.institution_name ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, institution_name: e.target.value }))}
+                            error={!!formErrors.institution_name}
                             required
                           />
                           {formErrors.institution_name && (
@@ -1547,14 +1596,12 @@ const PrisonManagementApp = () => {
                         </div>
                         
                         <div>
-                          <input
+                          <MobileOptimizedInput
                             type="text"
                             placeholder="Institution Code"
                             value={registerForm.institution_code}
-                            onChange={(e) => setRegisterForm(prev => ({ ...prev, institution_code: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.institution_code ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, institution_code: e.target.value }))}
+                            error={!!formErrors.institution_code}
                             required
                           />
                           {formErrors.institution_code && (
@@ -1563,14 +1610,12 @@ const PrisonManagementApp = () => {
                         </div>
                         
                         <div className="relative">
-                          <input
+                          <MobileOptimizedInput
                             type={registerForm.showPassword ? "text" : "password"}
                             placeholder="Password"
                             value={registerForm.password}
-                            onChange={(e) => setRegisterForm(prev => ({ ...prev, password: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, password: e.target.value }))}
+                            error={!!formErrors.password}
                             required
                           />
                           <button
@@ -1586,14 +1631,12 @@ const PrisonManagementApp = () => {
                         </div>
                         
                         <div className="relative">
-                          <input
+                          <MobileOptimizedInput
                             type={registerForm.showConfirmPassword ? "text" : "password"}
                             placeholder="Confirm Password"
                             value={registerForm.confirmPassword}
-                            onChange={(e) => setRegisterForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            error={!!formErrors.confirmPassword}
                             required
                           />
                           <button
@@ -1646,14 +1689,12 @@ const PrisonManagementApp = () => {
                       <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">Login to Your Account</h2>
                       <form onSubmit={handleLogin} className="space-y-4">
                         <div>
-                          <input
+                          <MobileOptimizedInput
                             type="email"
                             placeholder="Official Email"
                             value={loginForm.email}
-                            onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                            error={!!formErrors.email}
                             required
                           />
                           {formErrors.email && (
@@ -1662,14 +1703,12 @@ const PrisonManagementApp = () => {
                         </div>
                         
                         <div className="relative">
-                          <input
+                          <MobileOptimizedInput
                             type={loginForm.showPassword ? "text" : "password"}
                             placeholder="Password"
                             value={loginForm.password}
-                            onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                              formErrors.password ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                            }`}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                            error={!!formErrors.password}
                             required
                           />
                           <button
@@ -1960,29 +1999,6 @@ const PrisonManagementApp = () => {
     </aside>
   );
 
-  // Dashboard Analytics Cards with Framer Motion - MOBILE OPTIMIZED
-  const AnalyticsCard = ({ title, value, icon: Icon, color, change }: any) => (
-    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-200 hover:shadow-xl transition-shadow duration-300 mobile-analytics-card">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs sm:text-sm font-medium text-gray-600 mobile-analytics-title">{title}</p>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 sm:mt-2 mobile-analytics-value">{value}</p>
-          {change && (
-            <p className={`text-xs mt-1 flex items-center mobile-analytics-change ${
-              change > 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              <TrendingUp size={12} className={`mr-1 ${change > 0 ? '' : 'rotate-180'}`} />
-              {Math.abs(change)}% from last week
-            </p>
-          )}
-        </div>
-        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${color} rounded-full flex items-center justify-center mobile-analytics-icon`}>
-          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-
   // Main Dashboard Component - MOBILE OPTIMIZED
   const renderDashboard = () => (
     <div className="space-y-4 sm:space-y-6 mobile-dashboard">
@@ -2151,14 +2167,14 @@ const PrisonManagementApp = () => {
                 type="text"
                 placeholder="Search prisoners..."
                 value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm w-full mobile-search-input"
               />
             </div>
             <div className="flex space-x-2 w-full sm:w-auto mobile-filter-buttons">
               <MobileOptimizedSelect
                 value={statusFilter}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm mobile-filter-select"
               >
                 <option value="all">All Status</option>
@@ -2169,7 +2185,7 @@ const PrisonManagementApp = () => {
               </MobileOptimizedSelect>
               <MobileOptimizedSelect
                 value={genderFilter}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setGenderFilter(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setGenderFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm mobile-filter-select"
               >
                 <option value="all">All Genders</option>
@@ -2320,7 +2336,7 @@ const PrisonManagementApp = () => {
                 type="text"
                 placeholder="Search visitors..."
                 value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm w-full mobile-search-input"
               />
             </div>
@@ -2560,13 +2576,13 @@ const PrisonManagementApp = () => {
                 type="text"
                 placeholder="Search officers or blocks..."
                 value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm w-full mobile-search-input"
               />
             </div>
             <MobileOptimizedSelect
               value={shiftFilter}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setShiftFilter(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) => setShiftFilter(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 text-sm mobile-filter-select"
             >
               <option value="all">All Shifts</option>

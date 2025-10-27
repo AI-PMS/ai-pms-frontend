@@ -8,8 +8,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,  // Changed from 1 to 5
+  userScalable: true,  // Changed from false to true
+  viewportFit: 'cover',
   themeColor: '#1e40af',
 }
 
@@ -17,7 +18,6 @@ export const metadata: Metadata = {
   title: 'Prison Management System',
   description: 'AI-powered Prison Management System for Ghana Security Agencies',
   manifest: '/manifest.json',
-  // Remove themeColor and viewport from here
 }
 
 export default function RootLayout({
