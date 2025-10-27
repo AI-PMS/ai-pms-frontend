@@ -125,24 +125,6 @@ import { MobileOptimizedInput, MobileOptimizedTextArea, MobileOptimizedSelect } 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-pms-backend.onrender.com/api/v1';
 
-// Proper TypeScript interfaces for mobile-optimized components
-interface MobileOptimizedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  error?: boolean;
-  className?: string;
-}
-
-interface MobileOptimizedTextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  error?: boolean;
-  className?: string;
-}
-
-interface MobileOptimizedSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  error?: boolean;
-  className?: string;
-}
-
-
-
 // Validation functions
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?$/;
 
