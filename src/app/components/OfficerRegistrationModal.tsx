@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Calendar, MapPin, Clock, AlertCircle, Plus } from 'lucide-react';
+import { MobileOptimizedInput, MobileOptimizedTextArea, MobileOptimizedSelect } from './MobileOptimizedInputs';
 
 interface Officer {
   id: string;
@@ -121,12 +122,12 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 mobile-modal-overlay">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mobile-modal-content"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-600 to-orange-800 p-6 text-white">
@@ -142,7 +143,7 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors mobile-action-button"
                 >
                   <X size={20} />
                 </button>
@@ -150,8 +151,8 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
             </div>
 
             {/* Form */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] mobile-form-scroll">
+              <form onSubmit={handleSubmit} className="space-y-6 mobile-form-spacing">
                 {/* Officer Selection Method */}
                 <div className="border-b border-gray-200 pb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -161,7 +162,7 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setUseExistingOfficer(true)}
-                      className={`flex-1 py-3 px-4 border rounded-lg text-center transition-colors ${
+                      className={`flex-1 py-3 px-4 border rounded-lg text-center transition-colors mobile-action-button ${
                         useExistingOfficer
                           ? 'border-orange-500 bg-orange-50 text-orange-700'
                           : 'border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -173,7 +174,7 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setUseExistingOfficer(false)}
-                      className={`flex-1 py-3 px-4 border rounded-lg text-center transition-colors ${
+                      className={`flex-1 py-3 px-4 border rounded-lg text-center transition-colors mobile-action-button ${
                         !useExistingOfficer
                           ? 'border-green-500 bg-green-50 text-green-700'
                           : 'border-gray-300 text-gray-600 hover:bg-gray-50'
@@ -191,12 +192,10 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Select Officer *
                     </label>
-                    <select
+                    <MobileOptimizedSelect
                       value={formData.officer_id}
                       onChange={(e) => handleInputChange('officer_id', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
-                        errors.officer_id ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={!!errors.officer_id}
                     >
                       <option value="">Select an officer</option>
                       {availableOfficers.map((officer) => (
@@ -204,7 +203,7 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                           {officer.first_name} {officer.last_name} - {officer.role}
                         </option>
                       ))}
-                    </select>
+                    </MobileOptimizedSelect>
                     {errors.officer_id && (
                       <p className="text-red-500 text-xs mt-1 flex items-center">
                         <AlertCircle size={12} className="mr-1" />
@@ -235,14 +234,12 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Officer Name *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.officer_name}
                         onChange={(e) => handleInputChange('officer_name', e.target.value)}
+                        error={!!errors.officer_name}
                         placeholder="Enter officer's full name"
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                          errors.officer_name ? 'border-red-500' : 'border-gray-300'
-                        }`}
                       />
                       {errors.officer_name && (
                         <p className="text-red-500 text-xs mt-1 flex items-center">
@@ -257,14 +254,12 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Phone Number *
                         </label>
-                        <input
+                        <MobileOptimizedInput
                           type="tel"
                           value={formData.officer_phone}
                           onChange={(e) => handleInputChange('officer_phone', e.target.value)}
+                          error={!!errors.officer_phone}
                           placeholder="e.g., +233 XX XXX XXXX"
-                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                            errors.officer_phone ? 'border-red-500' : 'border-gray-300'
-                          }`}
                         />
                         {errors.officer_phone && (
                           <p className="text-red-500 text-xs mt-1 flex items-center">
@@ -278,12 +273,11 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Email (Optional)
                         </label>
-                        <input
+                        <MobileOptimizedInput
                           type="email"
                           value={formData.officer_email}
                           onChange={(e) => handleInputChange('officer_email', e.target.value)}
                           placeholder="officer@example.com"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                         />
                       </div>
                     </div>
@@ -301,13 +295,11 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Date *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="date"
                         value={formData.date}
                         onChange={(e) => handleInputChange('date', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
-                          errors.date ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.date}
                       />
                       {errors.date && (
                         <p className="text-red-500 text-xs mt-1">{errors.date}</p>
@@ -318,17 +310,15 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Shift *
                       </label>
-                      <select
+                      <MobileOptimizedSelect
                         value={formData.shift}
                         onChange={(e) => handleInputChange('shift', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
-                          errors.shift ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.shift}
                       >
                         <option value="morning">Morning (06:00 - 14:00)</option>
                         <option value="afternoon">Afternoon (14:00 - 22:00)</option>
                         <option value="night">Night (22:00 - 06:00)</option>
-                      </select>
+                      </MobileOptimizedSelect>
                       {errors.shift && (
                         <p className="text-red-500 text-xs mt-1">{errors.shift}</p>
                       )}
@@ -338,12 +328,10 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Block Assigned *
                       </label>
-                      <select
+                      <MobileOptimizedSelect
                         value={formData.block_assigned}
                         onChange={(e) => handleInputChange('block_assigned', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
-                          errors.block_assigned ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.block_assigned}
                       >
                         <option value="">Select Block</option>
                         <option value="A">Block A</option>
@@ -356,7 +344,7 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                         <option value="H">Block H</option>
                         <option value="Administration">Administration</option>
                         <option value="Gate">Gate Security</option>
-                      </select>
+                      </MobileOptimizedSelect>
                       {errors.block_assigned && (
                         <p className="text-red-500 text-xs mt-1">{errors.block_assigned}</p>
                       )}
@@ -369,11 +357,10 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Additional Notes
                   </h3>
-                  <textarea
+                  <MobileOptimizedTextArea
                     value={formData.notes}
                     onChange={(e) => handleInputChange('notes', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
                     placeholder="Enter any special instructions or notes for this duty assignment..."
                   />
                 </div>
@@ -383,7 +370,7 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button"
                     disabled={isLoading}
                   >
                     Cancel
@@ -391,7 +378,7 @@ const OfficerRegistrationModal: React.FC<OfficerRegistrationModalProps> = ({
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`px-6 py-3 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2 ${
+                    className={`px-6 py-3 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2 mobile-action-button ${
                       useExistingOfficer 
                         ? 'bg-orange-600 hover:bg-orange-700' 
                         : 'bg-green-600 hover:bg-green-700'

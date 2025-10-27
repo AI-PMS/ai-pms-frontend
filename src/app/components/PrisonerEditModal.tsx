@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Calendar, MapPin, Shield, Save, AlertCircle } from 'lucide-react';
+import { MobileOptimizedInput, MobileOptimizedTextArea, MobileOptimizedSelect } from './MobileOptimizedInputs';
 
 interface Prisoner {
   id: string;
@@ -29,7 +30,7 @@ interface Prisoner {
 interface PrisonerEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (prisonerId: string, data: any) => void; // Updated to accept prisonerId
+  onSubmit: (prisonerId: string, data: any) => void;
   isLoading: boolean;
   prisoner: Prisoner | null;
 }
@@ -85,7 +86,6 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm() && prisoner) {
-      // Pass the prisoner's actual ID (MongoDB _id) to the onSubmit function
       onSubmit(prisoner.id, formData);
     }
   };
@@ -112,7 +112,6 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
       ...prev,
       [field]: value
     }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -159,12 +158,12 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 mobile-modal-overlay">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden mobile-modal-content"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
@@ -180,7 +179,7 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors mobile-action-button"
                 >
                   <X size={20} />
                 </button>
@@ -188,21 +187,19 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
             </div>
 
             {/* Form */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] mobile-form-scroll">
+              <form onSubmit={handleSubmit} className="space-y-6 mobile-form-spacing">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Prisoner ID */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Prisoner ID *
                     </label>
-                    <input
+                    <MobileOptimizedInput
                       type="text"
                       value={formData.prisoner_id}
                       onChange={(e) => handleInputChange('prisoner_id', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.prisoner_id ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={!!errors.prisoner_id}
                       placeholder="Prisoner ID"
                     />
                     {errors.prisoner_id && (
@@ -218,13 +215,11 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Cell Number *
                     </label>
-                    <input
+                    <MobileOptimizedInput
                       type="text"
                       value={formData.cell_id}
                       onChange={(e) => handleInputChange('cell_id', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.cell_id ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={!!errors.cell_id}
                       placeholder="e.g., A101"
                     />
                     {errors.cell_id && (
@@ -247,13 +242,11 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         First Name *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.first_name}
                         onChange={(e) => handleInputChange('first_name', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.first_name ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.first_name}
                         placeholder="Enter first name"
                       />
                       {errors.first_name && (
@@ -265,13 +258,11 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Last Name *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.last_name}
                         onChange={(e) => handleInputChange('last_name', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.last_name ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.last_name}
                         placeholder="Enter last name"
                       />
                       {errors.last_name && (
@@ -283,11 +274,10 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Other Names
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.other_names}
                         onChange={(e) => handleInputChange('other_names', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter other names"
                       />
                     </div>
@@ -298,27 +288,24 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Gender *
                       </label>
-                      <select
+                      <MobileOptimizedSelect
                         value={formData.gender}
                         onChange={(e) => handleInputChange('gender', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                       >
                         <option value="male">Male</option>
                         <option value="female">Female</option>
-                      </select>
+                      </MobileOptimizedSelect>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Date of Birth *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="date"
                         value={formData.date_of_birth}
                         onChange={(e) => handleInputChange('date_of_birth', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.date_of_birth}
                       />
                       {errors.date_of_birth && (
                         <p className="text-red-500 text-xs mt-1">{errors.date_of_birth}</p>
@@ -329,11 +316,10 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Nationality
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.nationality}
                         onChange={(e) => handleInputChange('nationality', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter nationality"
                       />
                     </div>
@@ -343,13 +329,11 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Ghana Card Number *
                     </label>
-                    <input
+                    <MobileOptimizedInput
                       type="text"
                       value={formData.id_number}
                       onChange={(e) => handleInputChange('id_number', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.id_number ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={!!errors.id_number}
                       placeholder="Enter Ghana Card number"
                     />
                     {errors.id_number && (
@@ -369,13 +353,11 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Crime Committed *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.crime}
                         onChange={(e) => handleInputChange('crime', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.crime ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.crime}
                         placeholder="Enter crime description"
                       />
                       {errors.crime && (
@@ -387,13 +369,11 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Sentence Duration *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.sentence_duration}
                         onChange={(e) => handleInputChange('sentence_duration', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.sentence_duration ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.sentence_duration}
                         placeholder="e.g., 5 years, Life imprisonment"
                       />
                       {errors.sentence_duration && (
@@ -406,13 +386,11 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Date Admitted *
                     </label>
-                    <input
+                    <MobileOptimizedInput
                       type="date"
                       value={formData.date_admitted}
                       onChange={(e) => handleInputChange('date_admitted', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.date_admitted ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={!!errors.date_admitted}
                     />
                     {errors.date_admitted && (
                       <p className="text-red-500 text-xs mt-1">{errors.date_admitted}</p>
@@ -426,18 +404,17 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                     Medical Conditions
                   </h3>
                   <div className="flex space-x-2">
-                    <input
+                    <MobileOptimizedInput
                       type="text"
                       value={currentMedicalCondition}
                       onChange={(e) => setCurrentMedicalCondition(e.target.value)}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                       placeholder="Enter medical condition"
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMedicalCondition())}
                     />
                     <button
                       type="button"
                       onClick={addMedicalCondition}
-                      className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mobile-action-button"
                     >
                       Add
                     </button>
@@ -455,7 +432,7 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                             <button
                               type="button"
                               onClick={() => removeMedicalCondition(condition)}
-                              className="ml-2 text-blue-600 hover:text-blue-800"
+                              className="ml-2 text-blue-600 hover:text-blue-800 mobile-action-button"
                             >
                               <X size={14} />
                             </button>
@@ -476,11 +453,10 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Contact Name
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.emergency_contact.name}
                         onChange={(e) => handleEmergencyContactChange('name', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter contact name"
                       />
                     </div>
@@ -489,11 +465,10 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Phone Number
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.emergency_contact.phone}
                         onChange={(e) => handleEmergencyContactChange('phone', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter phone number"
                       />
                     </div>
@@ -502,11 +477,10 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Relationship
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.emergency_contact.relationship}
                         onChange={(e) => handleEmergencyContactChange('relationship', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="e.g., Spouse, Parent"
                       />
                     </div>
@@ -518,7 +492,7 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button"
                     disabled={isLoading}
                   >
                     Cancel
@@ -526,7 +500,7 @@ const PrisonerEditModal: React.FC<PrisonerEditModalProps> = ({
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center space-x-2 mobile-action-button"
                   >
                     {isLoading ? (
                       <>

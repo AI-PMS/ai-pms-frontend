@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Building2, Save, AlertCircle } from 'lucide-react';
+import { MobileOptimizedInput, MobileOptimizedSelect } from './MobileOptimizedInputs';
 
 interface CellCreationModalProps {
   isOpen: boolean;
@@ -74,7 +75,7 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 mobile-modal-overlay">
           {/* Backdrop with blur effect */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -89,7 +90,7 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative mobile-modal-content"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-6 text-white rounded-t-2xl">
@@ -105,7 +106,7 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors mobile-action-button"
                 >
                   <X size={20} />
                 </button>
@@ -114,19 +115,17 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
 
             {/* Form */}
             <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6 mobile-form-spacing">
                 {/* Cell Number */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Cell Number *
                   </label>
-                  <input
+                  <MobileOptimizedInput
                     type="text"
                     value={formData.cell_number}
                     onChange={(e) => handleInputChange('cell_number', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-                      errors.cell_number ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                    }`}
+                    error={!!errors.cell_number}
                     placeholder="e.g., A101, B205"
                   />
                   {errors.cell_number && (
@@ -142,12 +141,10 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Block *
                   </label>
-                  <select
+                  <MobileOptimizedSelect
                     value={formData.block}
                     onChange={(e) => handleInputChange('block', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-                      errors.block ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                    }`}
+                    error={!!errors.block}
                   >
                     <option value="">Select Block</option>
                     <option value="A">Block A</option>
@@ -158,7 +155,7 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                     <option value="F">Block F</option>
                     <option value="G">Block G</option>
                     <option value="H">Block H</option>
-                  </select>
+                  </MobileOptimizedSelect>
                   {errors.block && (
                     <p className="text-red-500 text-xs mt-1 flex items-center">
                       <AlertCircle size={12} className="mr-1" />
@@ -172,15 +169,13 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Capacity *
                   </label>
-                  <input
+                  <MobileOptimizedInput
                     type="number"
                     min="1"
                     max="50"
                     value={formData.capacity}
                     onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 1)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
-                      errors.capacity ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                    }`}
+                    error={!!errors.capacity}
                     placeholder="Enter cell capacity"
                   />
                   {errors.capacity && (
@@ -199,15 +194,14 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Status
                   </label>
-                  <select
+                  <MobileOptimizedSelect
                     value={formData.status}
                     onChange={(e) => handleInputChange('status', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                   >
                     <option value="available">Available</option>
                     <option value="maintenance">Under Maintenance</option>
                     <option value="reserved">Reserved</option>
-                  </select>
+                  </MobileOptimizedSelect>
                   <p className="text-xs text-gray-500 mt-1">
                     Cell status determines availability for prisoner assignment
                   </p>
@@ -218,7 +212,7 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button"
                     disabled={isLoading}
                   >
                     Cancel
@@ -226,7 +220,7 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center space-x-2 font-medium"
+                    className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center space-x-2 mobile-action-button"
                   >
                     {isLoading ? (
                       <>

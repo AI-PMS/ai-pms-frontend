@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Calendar, Phone, UserCheck, AlertCircle } from 'lucide-react';
+import { MobileOptimizedInput, MobileOptimizedTextArea, MobileOptimizedSelect } from './MobileOptimizedInputs';
 
 interface Prisoner {
   id: string;
@@ -97,12 +98,12 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 mobile-modal-overlay">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mobile-modal-content"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-800 p-6 text-white">
@@ -118,7 +119,7 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors mobile-action-button"
                 >
                   <X size={20} />
                 </button>
@@ -126,30 +127,28 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
             </div>
 
             {/* Form */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] mobile-form-scroll">
+              <form onSubmit={handleSubmit} className="space-y-6 mobile-form-spacing">
                 {/* Prisoner Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select Prisoner *
                   </label>
-                  <select
-  value={formData.prisoner_id}
-  onChange={(e) => handleInputChange('prisoner_id', e.target.value)}
-  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-    errors.prisoner_id ? 'border-red-500' : 'border-gray-300'
-  }`}
->
-  <option value="">Select a prisoner</option>
-  {prisoners.map((prisoner) => (
-    <option 
-      key={`prisoner-${prisoner.id}-${prisoner.prisoner_id}`} 
-      value={prisoner.prisoner_id} // Send just the prisoner_id, not the display string
-    >
-      {prisoner.prisoner_id} - {prisoner.first_name} {prisoner.last_name}
-    </option>
-  ))}
-</select>
+                  <MobileOptimizedSelect
+                    value={formData.prisoner_id}
+                    onChange={(e) => handleInputChange('prisoner_id', e.target.value)}
+                    error={!!errors.prisoner_id}
+                  >
+                    <option value="">Select a prisoner</option>
+                    {prisoners.map((prisoner) => (
+                      <option 
+                        key={`prisoner-${prisoner.id}-${prisoner.prisoner_id}`} 
+                        value={prisoner.prisoner_id}
+                      >
+                        {prisoner.prisoner_id} - {prisoner.first_name} {prisoner.last_name}
+                      </option>
+                    ))}
+                  </MobileOptimizedSelect>
                   {errors.prisoner_id && (
                     <p className="text-red-500 text-xs mt-1 flex items-center">
                       <AlertCircle size={12} className="mr-1" />
@@ -174,13 +173,11 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         First Name *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.first_name}
                         onChange={(e) => handleInputChange('first_name', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                          errors.first_name ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.first_name}
                         placeholder="Enter first name"
                       />
                       {errors.first_name && (
@@ -192,13 +189,11 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Last Name *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.last_name}
                         onChange={(e) => handleInputChange('last_name', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                          errors.last_name ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.last_name}
                         placeholder="Enter last name"
                       />
                       {errors.last_name && (
@@ -212,12 +207,10 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Relationship to Prisoner *
                       </label>
-                      <select
+                      <MobileOptimizedSelect
                         value={formData.relationship}
                         onChange={(e) => handleInputChange('relationship', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                          errors.relationship ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.relationship}
                       >
                         <option value="">Select relationship</option>
                         <option value="Spouse">Spouse</option>
@@ -227,7 +220,7 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                         <option value="Friend">Friend</option>
                         <option value="Lawyer">Lawyer</option>
                         <option value="Other">Other</option>
-                      </select>
+                      </MobileOptimizedSelect>
                       {errors.relationship && (
                         <p className="text-red-500 text-xs mt-1">{errors.relationship}</p>
                       )}
@@ -237,13 +230,11 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Phone Number *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="text"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                          errors.phone ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.phone}
                         placeholder="Enter phone number"
                       />
                       {errors.phone && (
@@ -256,13 +247,11 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Ghana Card Number *
                     </label>
-                    <input
+                    <MobileOptimizedInput
                       type="text"
                       value={formData.id_number}
                       onChange={(e) => handleInputChange('id_number', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                        errors.id_number ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={!!errors.id_number}
                       placeholder="Enter Ghana Card number"
                     />
                     {errors.id_number && (
@@ -282,13 +271,11 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Visit Date *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="date"
                         value={formData.visit_date}
                         onChange={(e) => handleInputChange('visit_date', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                          errors.visit_date ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.visit_date}
                       />
                       {errors.visit_date && (
                         <p className="text-red-500 text-xs mt-1">{errors.visit_date}</p>
@@ -299,12 +286,10 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Visit Purpose *
                       </label>
-                      <select
+                      <MobileOptimizedSelect
                         value={formData.purpose}
                         onChange={(e) => handleInputChange('purpose', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                          errors.purpose ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.purpose}
                       >
                         <option value="">Select purpose</option>
                         <option value="Family Visit">Family Visit</option>
@@ -312,7 +297,7 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                         <option value="Medical Consultation">Medical Consultation</option>
                         <option value="Religious Counseling">Religious Counseling</option>
                         <option value="Other">Other</option>
-                      </select>
+                      </MobileOptimizedSelect>
                       {errors.purpose && (
                         <p className="text-red-500 text-xs mt-1">{errors.purpose}</p>
                       )}
@@ -326,18 +311,17 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                     Items Brought (Optional)
                   </h3>
                   <div className="flex space-x-2">
-                    <input
+                    <MobileOptimizedInput
                       type="text"
                       value={currentItem}
                       onChange={(e) => setCurrentItem(e.target.value)}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                       placeholder="Enter item description"
                       onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addItem())}
                     />
                     <button
                       type="button"
                       onClick={addItem}
-                      className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mobile-action-button"
                     >
                       Add
                     </button>
@@ -347,20 +331,20 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                     <div className="mt-3">
                       <div className="flex flex-wrap gap-2">
                         {formData.items_brought.map((item, index) => (
-  <span
-    key={`item-${index}-${item.substring(0, 10)}`} // More unique key
-    className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
-  >
-    {item}
-    <button
-      type="button"
-      onClick={() => removeItem(item)}
-      className="ml-2 text-green-600 hover:text-green-800"
-    >
-      <X size={14} />
-    </button>
-  </span>
-))}
+                          <span
+                            key={`item-${index}-${item.substring(0, 10)}`}
+                            className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                          >
+                            {item}
+                            <button
+                              type="button"
+                              onClick={() => removeItem(item)}
+                              className="ml-2 text-green-600 hover:text-green-800 mobile-action-button"
+                            >
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -371,7 +355,7 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button"
                     disabled={isLoading}
                   >
                     Cancel
@@ -379,7 +363,7 @@ const VisitorRegistrationModal: React.FC<VisitorRegistrationModalProps> = ({
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center space-x-2 mobile-action-button"
                   >
                     {isLoading ? (
                       <>

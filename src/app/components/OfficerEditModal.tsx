@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Calendar, MapPin, Clock, Save, AlertCircle, Mail, Phone } from 'lucide-react';
+import { MobileOptimizedInput, MobileOptimizedTextArea, MobileOptimizedSelect } from './MobileOptimizedInputs';
 
 interface OfficerDuty {
   id: string;
@@ -87,12 +88,12 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 mobile-modal-overlay">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mobile-modal-content"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-600 to-orange-800 p-6 text-white">
@@ -108,7 +109,7 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors mobile-action-button"
                 >
                   <X size={20} />
                 </button>
@@ -116,8 +117,8 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
             </div>
 
             {/* Form */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] mobile-form-scroll">
+              <form onSubmit={handleSubmit} className="space-y-6 mobile-form-spacing">
                 {/* Officer Information - Display Only */}
                 <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                   <h3 className="text-lg font-semibold text-orange-900 mb-3 flex items-center">
@@ -175,13 +176,11 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Date *
                       </label>
-                      <input
+                      <MobileOptimizedInput
                         type="date"
                         value={formData.date}
                         onChange={(e) => handleInputChange('date', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
-                          errors.date ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.date}
                       />
                       {errors.date && (
                         <p className="text-red-500 text-xs mt-1 flex items-center">
@@ -195,17 +194,15 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Shift *
                       </label>
-                      <select
+                      <MobileOptimizedSelect
                         value={formData.shift}
                         onChange={(e) => handleInputChange('shift', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
-                          errors.shift ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.shift}
                       >
                         <option value="morning">Morning (06:00 - 14:00)</option>
                         <option value="afternoon">Afternoon (14:00 - 22:00)</option>
                         <option value="night">Night (22:00 - 06:00)</option>
-                      </select>
+                      </MobileOptimizedSelect>
                       {errors.shift && (
                         <p className="text-red-500 text-xs mt-1 flex items-center">
                           <AlertCircle size={12} className="mr-1" />
@@ -218,12 +215,10 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Block Assigned *
                       </label>
-                      <select
+                      <MobileOptimizedSelect
                         value={formData.block_assigned}
                         onChange={(e) => handleInputChange('block_assigned', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors ${
-                          errors.block_assigned ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                        error={!!errors.block_assigned}
                       >
                         <option value="">Select Block</option>
                         <option value="A">Block A</option>
@@ -236,7 +231,7 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                         <option value="H">Block H</option>
                         <option value="Administration">Administration</option>
                         <option value="Gate">Gate Security</option>
-                      </select>
+                      </MobileOptimizedSelect>
                       {errors.block_assigned && (
                         <p className="text-red-500 text-xs mt-1 flex items-center">
                           <AlertCircle size={12} className="mr-1" />
@@ -252,11 +247,10 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Additional Notes
                   </h3>
-                  <textarea
+                  <MobileOptimizedTextArea
                     value={formData.notes}
                     onChange={(e) => handleInputChange('notes', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
                     placeholder="Enter any special instructions or notes for this duty assignment..."
                   />
                 </div>
@@ -266,7 +260,7 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button"
                     disabled={isLoading}
                   >
                     Cancel
@@ -274,7 +268,7 @@ const OfficerEditModal: React.FC<OfficerEditModalProps> = ({
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+                    className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center space-x-2 mobile-action-button"
                   >
                     {isLoading ? (
                       <>
