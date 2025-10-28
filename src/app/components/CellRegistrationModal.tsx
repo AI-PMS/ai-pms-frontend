@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Building2, Save, AlertCircle } from 'lucide-react';
 import { MobileOptimizedInput, MobileOptimizedSelect } from './MobileOptimizedInputs';
@@ -26,22 +26,6 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -101,45 +85,42 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
             onClick={handleClose}
           />
           
-          {/* Modal - Mobile Optimized */}
+          {/* Modal - MOBILE OPTIMIZED WITH SCROLLING */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : 0 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : 0 }}
-            className={`bg-white rounded-2xl shadow-2xl w-full max-w-md relative mobile-modal-content ${
-              isMobile 
-                ? 'h-[90vh] max-h-[90vh] bottom-0 rounded-b-none' 
-                : 'max-h-[85vh]'
-            }`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 flex flex-col mobile-modal-content"
+            style={{ maxHeight: '90vh' }}
           >
-            {/* Header - Sticky on Mobile */}
-            <div className={`bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl sticky top-0 z-10 ${
-              isMobile ? 'p-4' : 'p-6'
-            }`}>
+            {/* Header - FIXED AT TOP */}
+            <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-4 sm:p-6 text-white rounded-t-2xl flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-white bg-opacity-20 rounded-lg flex items-center justify-center`}>
-                    <Building2 size={isMobile ? 16 : 20} />
+                  <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <Building2 size={20} />
                   </div>
                   <div>
-                    <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Create New Cell</h2>
-                    <p className="text-purple-100 text-sm">Add a new prison cell to the system</p>
+                    <h2 className="text-lg sm:text-xl font-bold">Create New Cell</h2>
+                    <p className="text-purple-100 text-xs sm:text-sm">Add a new prison cell to the system</p>
                   </div>
                 </div>
                 <button
                   onClick={handleClose}
                   className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors mobile-action-button"
+                  type="button"
                 >
-                  <X size={isMobile ? 18 : 20} />
+                  <X size={20} />
                 </button>
               </div>
             </div>
 
-            {/* Form Container with Scroll */}
-            <div className={`overflow-y-auto mobile-form-scroll ${
-              isMobile ? 'h-[calc(90vh-140px)] p-4' : 'max-h-[60vh] p-6'
-            }`}>
-              <form onSubmit={handleSubmit} className="space-y-4 mobile-form-spacing">
+            {/* Form Container - SCROLLABLE MIDDLE SECTION */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 mobile-form-scroll" style={{ 
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}>
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 mobile-form-spacing" id="cell-creation-form">
                 {/* Cell Number */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -230,37 +211,28 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                     Cell status determines availability for prisoner assignment
                   </p>
                 </div>
+
+                {/* Spacer to ensure buttons are always visible when scrolling */}
+                <div className="h-2"></div>
               </form>
             </div>
 
-            {/* Form Actions - Sticky at Bottom on Mobile */}
-            <div className={`border-t border-gray-200 bg-white sticky bottom-0 ${
-              isMobile ? 'p-4 rounded-b-2xl' : 'p-6'
-            }`}>
-              <div className={`flex justify-end space-x-3 ${
-                isMobile ? 'flex-col space-y-3' : ''
-              }`}>
+            {/* Form Actions - FIXED AT BOTTOM */}
+            <div className="border-t border-gray-200 p-4 sm:p-6 bg-white rounded-b-2xl flex-shrink-0">
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className={`border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button ${
-                    isMobile 
-                      ? 'px-4 py-3 text-base flex-1' 
-                      : 'px-6 py-3'
-                  }`}
+                  className="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button"
                   disabled={isLoading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  onClick={handleSubmit}
+                  form="cell-creation-form"
                   disabled={isLoading}
-                  className={`bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 mobile-action-button ${
-                    isMobile 
-                      ? 'px-4 py-3 text-base flex-1' 
-                      : 'px-6 py-3'
-                  }`}
+                  className="w-full sm:w-auto px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 mobile-action-button"
                 >
                   {isLoading ? (
                     <>
