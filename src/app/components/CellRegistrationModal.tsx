@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Building2, Save, AlertCircle } from 'lucide-react';
 import { MobileOptimizedInput, MobileOptimizedSelect } from './MobileOptimizedInputs';
@@ -26,6 +26,22 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -85,22 +101,28 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
             onClick={handleClose}
           />
           
-          {/* Modal */}
+          {/* Modal - Mobile Optimized */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative mobile-modal-content"
+            initial={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : 0 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: isMobile ? 50 : 0 }}
+            className={`bg-white rounded-2xl shadow-2xl w-full max-w-md relative mobile-modal-content ${
+              isMobile 
+                ? 'h-[90vh] max-h-[90vh] bottom-0 rounded-b-none' 
+                : 'max-h-[85vh]'
+            }`}
           >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-purple-800 p-6 text-white rounded-t-2xl">
+            {/* Header - Sticky on Mobile */}
+            <div className={`bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-t-2xl sticky top-0 z-10 ${
+              isMobile ? 'p-4' : 'p-6'
+            }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                    <Building2 size={20} />
+                  <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-white bg-opacity-20 rounded-lg flex items-center justify-center`}>
+                    <Building2 size={isMobile ? 16 : 20} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">Create New Cell</h2>
+                    <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Create New Cell</h2>
                     <p className="text-purple-100 text-sm">Add a new prison cell to the system</p>
                   </div>
                 </div>
@@ -108,14 +130,16 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                   onClick={handleClose}
                   className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors mobile-action-button"
                 >
-                  <X size={20} />
+                  <X size={isMobile ? 18 : 20} />
                 </button>
               </div>
             </div>
 
-            {/* Form */}
-            <div className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6 mobile-form-spacing">
+            {/* Form Container with Scroll */}
+            <div className={`overflow-y-auto mobile-form-scroll ${
+              isMobile ? 'h-[calc(90vh-140px)] p-4' : 'max-h-[60vh] p-6'
+            }`}>
+              <form onSubmit={handleSubmit} className="space-y-4 mobile-form-spacing">
                 {/* Cell Number */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -206,36 +230,51 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                     Cell status determines availability for prisoner assignment
                   </p>
                 </div>
-
-                {/* Form Actions */}
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={handleClose}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button"
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center space-x-2 mobile-action-button"
-                  >
-                    {isLoading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Creating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save size={16} />
-                        <span>Create Cell</span>
-                      </>
-                    )}
-                  </button>
-                </div>
               </form>
+            </div>
+
+            {/* Form Actions - Sticky at Bottom on Mobile */}
+            <div className={`border-t border-gray-200 bg-white sticky bottom-0 ${
+              isMobile ? 'p-4 rounded-b-2xl' : 'p-6'
+            }`}>
+              <div className={`flex justify-end space-x-3 ${
+                isMobile ? 'flex-col space-y-3' : ''
+              }`}>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className={`border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors mobile-action-button ${
+                    isMobile 
+                      ? 'px-4 py-3 text-base flex-1' 
+                      : 'px-6 py-3'
+                  }`}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className={`bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2 mobile-action-button ${
+                    isMobile 
+                      ? 'px-4 py-3 text-base flex-1' 
+                      : 'px-6 py-3'
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      <span>Create Cell</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
