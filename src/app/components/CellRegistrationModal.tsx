@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Building2, Save, AlertCircle } from 'lucide-react';
+import { X, Building2, Save, AlertCircle, Plus, Minus } from 'lucide-react';
 import { MobileOptimizedInput, MobileOptimizedSelect } from './MobileOptimizedInputs';
 
 interface CellCreationModalProps {
@@ -55,6 +55,21 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const handleCapacityChange = (newCapacity: number) => {
+    // Ensure capacity stays within bounds
+    if (newCapacity >= 1 && newCapacity <= 50) {
+      handleInputChange('capacity', newCapacity);
+    }
+  };
+
+  const incrementCapacity = () => {
+    handleCapacityChange(formData.capacity + 1);
+  };
+
+  const decrementCapacity = () => {
+    handleCapacityChange(formData.capacity - 1);
   };
 
   const resetForm = () => {
@@ -169,20 +184,48 @@ const CellCreationModal: React.FC<CellCreationModalProps> = ({
                   )}
                 </div>
 
-                {/* Capacity */}
+                {/* Capacity - MOBILE OPTIMIZED */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Capacity *
                   </label>
-                  <MobileOptimizedInput
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={formData.capacity}
-                    onChange={(e) => handleInputChange('capacity', parseInt(e.target.value) || 1)}
-                    error={!!errors.capacity}
-                    placeholder="Enter cell capacity"
-                  />
+                  <div className="flex items-center space-x-2">
+                    {/* Decrement Button */}
+                    <button
+                      type="button"
+                      onClick={decrementCapacity}
+                      disabled={formData.capacity <= 1}
+                      className="w-10 h-10 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mobile-touch-target"
+                      aria-label="Decrease capacity"
+                    >
+                      <Minus size={16} className="text-gray-700" />
+                    </button>
+
+                    {/* Number Input */}
+                    <div className="flex-1 relative">
+                      <MobileOptimizedInput
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={formData.capacity}
+                        onChange={(e) => handleCapacityChange(parseInt(e.target.value) || 1)}
+                        error={!!errors.capacity}
+                        className="text-center"
+                      />
+                    </div>
+
+                    {/* Increment Button */}
+                    <button
+                      type="button"
+                      onClick={incrementCapacity}
+                      disabled={formData.capacity >= 50}
+                      className="w-10 h-10 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mobile-touch-target"
+                      aria-label="Increase capacity"
+                    >
+                      <Plus size={16} className="text-gray-700" />
+                    </button>
+                  </div>
+                  
                   {errors.capacity && (
                     <p className="text-red-500 text-xs mt-1 flex items-center">
                       <AlertCircle size={12} className="mr-1" />
